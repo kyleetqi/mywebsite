@@ -1,9 +1,9 @@
-.draggable-window {
-  position: absolute;          /* allows moving around */
-  min-width: 300px;           /* minimum window width */
-  min-height: 200px;          /* minimum window height */
-  border: 2px solid #000080;  /* dark blue border */
-  background-color: #c0c0c0;  /* classic XP gray */
+.notepad-window {
+  position: absolute;
+  min-width: 400px;
+  min-height: 300px;
+  border: 2px solid #000080;
+  background-color: #ffffff;
   box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
   cursor: default;
   user-select: none;
@@ -14,19 +14,22 @@
   font-family: Tahoma, sans-serif;
 }
 
-.window-header {
-  background-color: #000080;   /* dark blue title bar */
+.notepad-header {
+  background-color: #000080;
   color: #ffffff;
   padding: 5px 10px;
   font-weight: bold;
   cursor: grab;
-  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.close-btn {
+.notepad-title {
+  flex: 1;
+}
+
+.notepad-close-btn {
   background: none;
   border: none;
   color: #ffffff;
@@ -35,20 +38,49 @@
   padding: 0;
   width: 20px;
   height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.close-btn:hover {
+.notepad-close-btn:hover {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
-.window-content {
-  padding: 10px;
-  background-color: #c0c0c0;   /* window body */
-  overflow: auto;
+.notepad-menu {
+  background-color: #c0c0c0;
+  border-bottom: 1px solid #808080;
+  padding: 2px 5px;
+  display: flex;
+  gap: 15px;
+  font-size: 12px;
+}
+
+.notepad-menu span {
+  cursor: pointer;
+  padding: 2px 5px;
+}
+
+.notepad-menu span:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.notepad-content {
   flex: 1;
+  padding: 0;
+  background-color: #ffffff;
+  overflow: hidden;
+}
+
+.notepad-textarea {
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 10px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  resize: none;
+  outline: none;
+  background-color: #ffffff;
+  color: #000000;
+  box-sizing: border-box;
 }
 
 .resize-handle {
@@ -120,3 +152,4 @@
   height: 5px;
   cursor: sw-resize;
 }
+

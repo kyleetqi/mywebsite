@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
-import './DraggableWindow.css';
+import './Notepad.css';
 import { useWindowResize } from '../hooks/useWindowResize';
 
-function DraggableWindow({ title, isOpen, onClose, children }) {
-  const [position, setPosition] = useState({ x: 200, y: 150 });
+function Notepad({ title, content, onClose, initialPosition = { x: 150, y: 150 } }) {
+  const [position, setPosition] = useState(initialPosition);
   const [dragging, setDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const { size, handleMouseDown: handleResizeMouseDown, windowRef, positionDelta } = useWindowResize({ width: 500, height: 400 }, { width: 300, height: 200 });
-
-  if (!isOpen) return null; // 🔑 window starts closed
+  const { size, handleMouseDown: handleResizeMouseDown, windowRef, positionDelta } = useWindowResize({ width: 600, height: 500 }, { width: 400, height: 300 });
 
   // Adjust position when resizing from left or top
   useEffect(() => {
@@ -23,9 +21,9 @@ function DraggableWindow({ title, isOpen, onClose, children }) {
   const onMouseDown = (e) => {
     // Don't start dragging if clicking on resize handles or close button
     if (e.target.closest('.resize-handle')) return;
-    if (e.target.closest('.close-btn')) return;
+    if (e.target.closest('.notepad-close-btn')) return;
     // Only start dragging if clicking on the header
-    if (!e.target.closest('.window-header')) return;
+    if (!e.target.closest('.notepad-header')) return;
     
     e.stopPropagation();
     e.preventDefault();
@@ -88,15 +86,15 @@ function DraggableWindow({ title, isOpen, onClose, children }) {
   }, [size]);
 
   return (
-    <div
+    <div 
       ref={windowRef}
-      className="draggable-window"
+      className="notepad-window"
       style={{ top: position.y, left: position.x, width: size.width, height: size.height }}
     >
-      <div className="window-header" onMouseDown={onMouseDown}>
-        {title}
+      <div className="notepad-header" onMouseDown={onMouseDown}>
+        <span className="notepad-title">{title}</span>
         <button 
-          className="close-btn" 
+          className="notepad-close-btn" 
           onMouseDown={(e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -110,7 +108,16 @@ function DraggableWindow({ title, isOpen, onClose, children }) {
           ✕
         </button>
       </div>
-      <div className="window-content" style={{ height: `calc(100% - 30px)` }}>{children}</div>
+      <div className="notepad-menu">
+        <span>File</span>
+        <span>Edit</span>
+        <span>Format</span>
+        <span>View</span>
+        <span>Help</span>
+      </div>
+      <div className="notepad-content">
+        <textarea readOnly value={content} className="notepad-textarea" />
+      </div>
       <div className="resize-handle resize-handle-n" onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'n'); }}></div>
       <div className="resize-handle resize-handle-s" onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 's'); }}></div>
       <div className="resize-handle resize-handle-e" onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'e'); }}></div>
@@ -123,4 +130,5 @@ function DraggableWindow({ title, isOpen, onClose, children }) {
   );
 }
 
-export default DraggableWindow;
+export default Notepad;
+

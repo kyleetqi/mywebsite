@@ -1,0 +1,242 @@
+.window {
+  position: absolute;
+  min-width: 400px;
+  min-height: 300px;
+  cursor: default;
+  user-select: none;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: Tahoma, sans-serif;
+}
+
+.window-title {
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 12px;
+  flex: 1;
+  pointer-events: none;
+}
+
+.window-close-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  z-index: 15;
+  position: relative;
+  pointer-events: auto;
+}
+
+.window-close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.window-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.window-frame {
+  flex: 1;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto 1fr auto;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Top Row */
+.frame-top-left {
+  grid-column: 1;
+  grid-row: 1;
+  background-image: url('../assets/WindowFrameTopLeft.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  width: 6px;
+  height: 28px;
+}
+
+.frame-top {
+  grid-column: 2;
+  grid-row: 1;
+  background-image: url('../assets/WindowFrameTop.png');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  height: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+  cursor: grab;
+  position: relative;
+}
+
+.frame-top:active {
+  cursor: grabbing;
+}
+
+.frame-top-right {
+  grid-column: 3;
+  grid-row: 1;
+  background-image: url('../assets/WindowFrameTopRight.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: left;
+  width: 6px;
+  height: 28px;
+}
+
+/* Middle Row */
+.frame-left {
+  grid-column: 1;
+  grid-row: 2;
+  background-image: url('../assets/WindowFrameLeft.png');
+  background-repeat: repeat-y;
+  background-size: 100% auto;
+  background-position: right;
+  width: 6px;
+  min-height: 100px;
+}
+
+.frame-center {
+  grid-column: 2;
+  grid-row: 2;
+  background-color: #efeee0;
+  background-image: url('../assets/WindowFrameCenter.png');
+  background-repeat: repeat;
+  background-size: 100% 100%;
+  overflow: auto;
+  position: relative;
+  min-width: 100px;
+  min-height: 100px;
+}
+
+.frame-right {
+  grid-column: 3;
+  grid-row: 2;
+  background-image: url('../assets/WindowFrameRight.png');
+  background-repeat: repeat-y;
+  background-size: 100% auto;
+  width: 6px;
+  min-height: 100px;
+}
+
+/* Bottom Row */
+.frame-bottom-left {
+  grid-column: 1;
+  grid-row: 3;
+  background-image: url('../assets/WindowFrameBottomLeft.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: right;
+  width: 6px;
+  height: 4px;
+}
+
+.frame-bottom {
+  grid-column: 2;
+  grid-row: 3;
+  background-image: url('../assets/WindowFrameBottom.png');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  height: 4px;
+}
+
+.frame-bottom-right {
+  grid-column: 3;
+  grid-row: 3;
+  background-image: url('../assets/WindowFrameBottomRight.png');
+  background-repeat: no-repeat;
+  align-self: start;
+  justify-self: start;
+  width: 6px;
+  height: 4px;
+}
+
+.resize-handle {
+  position: absolute;
+  background: transparent;
+  z-index: 10;
+}
+
+.resize-handle-n {
+  top: 28px;
+  left: 6px;
+  right: 6px;
+  height: 5px;
+  cursor: n-resize;
+  z-index: 1;
+}
+
+.resize-handle-s {
+  bottom: 0;
+  left: 5px;
+  right: 5px;
+  height: 5px;
+  cursor: s-resize;
+}
+
+.resize-handle-e {
+  top: 28px;
+  right: 0;
+  bottom: 4px;
+  width: 6px;
+  cursor: e-resize;
+  z-index: 1;
+}
+
+.resize-handle-w {
+  top: 28px;
+  left: 0;
+  bottom: 4px;
+  width: 6px;
+  cursor: w-resize;
+  z-index: 1;
+}
+
+.resize-handle-ne {
+  top: 28px;
+  right: 0;
+  width: 6px;
+  height: 5px;
+  cursor: ne-resize;
+  z-index: 1;
+}
+
+.resize-handle-nw {
+  top: 28px;
+  left: 0;
+  width: 6px;
+  height: 5px;
+  cursor: nw-resize;
+  z-index: 1;
+}
+
+.resize-handle-se {
+  bottom: 0;
+  right: 0;
+  width: 5px;
+  height: 5px;
+  cursor: se-resize;
+}
+
+.resize-handle-sw {
+  bottom: 0;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  cursor: sw-resize;
+}
+

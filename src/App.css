@@ -72,6 +72,7 @@ h2.section-header {
   background-repeat: no-repeat;
 
   overflow: hidden;
+  font-family: Tahoma, sans-serif;
 }
 
 .desktop-icons {
@@ -79,5 +80,9 @@ h2.section-header {
   flex-direction: column;
   gap: 20px;
   padding: 20px;
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
 }
+
 

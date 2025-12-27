@@ -1,51 +1,50 @@
 import './App.css';
-import ExperienceItem from './components/ExperienceItem';
-import WritingItem from './components/WritingItem';
-import ContactLink from './components/ContactLink';
-import DraggableWindow from './components/DraggableWindow';
 import DesktopIcon from './components/DesktopIcon';
-import { useState } from 'react';
+import Window from './components/Window';
+import { useState, useEffect } from 'react';
+import AboutMeIcon from './assets/AboutMeIcon.png';
 
 function App() {
-  const [windows, setWindows] = useState({
-    skills: false,
-    interests: false,
-    experience: false,
-    writings: false,
-  });
+  const [isWindowOpen, setIsWindowOpen] = useState(false);
+  const [selectedIcon, setSelectedIcon] = useState(null);
 
-  const open = (name) => setWindows(w => ({ ...w, [name]: true }));
-  const close = (name) => setWindows(w => ({ ...w, [name]: false }));
+  // Click-away logic for deselecting icons
+  useEffect(() => {
+    const handleMouseDown = (e) => {
+      const isClickOnIcon = e.target.closest('.desktop-icon');
+      const isClickOnWindow = e.target.closest('.window');
+      const isClickOnDesktopIcons = e.target.closest('.desktop-icons');
+      
+      // Deselect icon if clicking anywhere except on the icon itself
+      if (!isClickOnIcon) {
+        setSelectedIcon(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleMouseDown);
+    return () => document.removeEventListener('mousedown', handleMouseDown);
+  }, []);
 
   return (
     <div className="desktop">
-
       {/* Desktop Icons */}
       <div className="desktop-icons">
-        <DesktopIcon icon="🛠️" label="Skills" onOpen={() => open('skills')} />
-        <DesktopIcon icon="🧠" label="Interests" onOpen={() => open('interests')} />
-        <DesktopIcon icon="🏢" label="Experience" onOpen={() => open('experience')} />
-        <DesktopIcon icon="📄" label="Writings" onOpen={() => open('writings')} />
+        <DesktopIcon 
+          iconSrc={AboutMeIcon} 
+          label="About Me" 
+          onOpen={() => setIsWindowOpen(true)}
+          isSelected={selectedIcon === 'aboutMe'}
+          onSelect={() => setSelectedIcon('aboutMe')}
+        />
       </div>
 
-      {/* Windows */}
-      <DraggableWindow title="Skills" isOpen={windows.skills} onClose={() => close('skills')}>
-        <p>Mechatronics, Robotics, Automation</p>
-      </DraggableWindow>
-
-      <DraggableWindow title="Interests" isOpen={windows.interests} onClose={() => close('interests')}>
-        <p>Body Building, Evolutionary Biology, Anthropology</p>
-      </DraggableWindow>
-
-      <DraggableWindow title="Experience" isOpen={windows.experience} onClose={() => close('experience')}>
-        <ExperienceItem company="Tesla" position="Battery Intern" />
-        <ExperienceItem company="Curtiss-Wright" position="Materials R&D" />
-      </DraggableWindow>
-
-      <DraggableWindow title="Writings" isOpen={windows.writings} onClose={() => close('writings')}>
-        <WritingItem title="Purpose In the Age of AI" link="#" />
-      </DraggableWindow>
-
+      {/* Window */}
+      {isWindowOpen && (
+        <Window 
+          onClose={() => setIsWindowOpen(false)}
+          initialPosition={{ x: 100, y: 100 }}
+        />
+      )}
     </div>
   );
 }

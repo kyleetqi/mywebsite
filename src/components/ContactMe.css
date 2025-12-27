@@ -1,9 +1,9 @@
-.draggable-window {
-  position: absolute;          /* allows moving around */
-  min-width: 300px;           /* minimum window width */
-  min-height: 200px;          /* minimum window height */
-  border: 2px solid #000080;  /* dark blue border */
-  background-color: #c0c0c0;  /* classic XP gray */
+.contact-window {
+  position: absolute;
+  min-width: 400px;
+  min-height: 400px;
+  border: 2px solid #000080;
+  background-color: #c0c0c0;
   box-shadow: 2px 2px 8px rgba(0,0,0,0.3);
   cursor: default;
   user-select: none;
@@ -14,19 +14,22 @@
   font-family: Tahoma, sans-serif;
 }
 
-.window-header {
-  background-color: #000080;   /* dark blue title bar */
+.contact-header {
+  background-color: #000080;
   color: #ffffff;
   padding: 5px 10px;
   font-weight: bold;
   cursor: grab;
-  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.close-btn {
+.contact-title {
+  flex: 1;
+}
+
+.contact-close-btn {
   background: none;
   border: none;
   color: #ffffff;
@@ -35,20 +38,83 @@
   padding: 0;
   width: 20px;
   height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.close-btn:hover {
+.contact-close-btn:hover {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
-.window-content {
-  padding: 10px;
-  background-color: #c0c0c0;   /* window body */
-  overflow: auto;
-  flex: 1;
+.contact-content {
+  padding: 15px;
+  background-color: #c0c0c0;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: bold;
+  color: #000000;
+}
+
+.form-input,
+.form-textarea {
+  padding: 5px;
+  border: 1px solid #808080;
+  background-color: #ffffff;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: 1px solid #000080;
+}
+
+.form-textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.submit-btn,
+.cancel-btn {
+  padding: 5px 15px;
+  border: 1px solid #808080;
+  background-color: #c0c0c0;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.submit-btn:hover,
+.cancel-btn:hover {
+  background-color: #d4d4d4;
+}
+
+.submit-btn {
+  background-color: #000080;
+  color: #ffffff;
+  border-color: #000080;
+}
+
+.submit-btn:hover {
+  background-color: #0000a0;
 }
 
 .resize-handle {
@@ -120,3 +186,4 @@
   height: 5px;
   cursor: sw-resize;
 }
+
