@@ -1,12 +1,27 @@
 import './App.css';
 import DesktopIcon from './components/DesktopIcon';
 import Window from './components/Window';
-import { useState, useEffect } from 'react';
-import AboutMeIcon from './assets/AboutMeIcon.png';
+import { useState, useEffect, useRef } from 'react';
+import AboutMeIcon from './assets/Icons/AboutMeIcon.png';
+import PDFIcon from './assets/Icons/PDFIcon.png';
+import NotepadIcon from './assets/Icons/Notepad_WinXP.png';
 
 function App() {
-  const [isWindowOpen, setIsWindowOpen] = useState(false);
+  const [isAboutMeWindowOpen, setIsAboutMeWindowOpen] = useState(false);
+  const [isExperienceWindowOpen, setIsExperienceWindowOpen] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);
+  const maxZIndexRef = useRef(100);
+  const [aboutMeZIndex, setAboutMeZIndex] = useState(100);
+  const [experienceZIndex, setExperienceZIndex] = useState(100);
+
+  const bringToFront = (windowType) => {
+    maxZIndexRef.current += 1;
+    if (windowType === 'aboutMe') {
+      setAboutMeZIndex(maxZIndexRef.current);
+    } else if (windowType === 'experience') {
+      setExperienceZIndex(maxZIndexRef.current);
+    }
+  };
 
   // Click-away logic for deselecting icons
   useEffect(() => {
@@ -32,17 +47,46 @@ function App() {
         <DesktopIcon 
           iconSrc={AboutMeIcon} 
           label="About Me" 
-          onOpen={() => setIsWindowOpen(true)}
+          onOpen={() => {
+            setSelectedIcon(null); // Deselect when opening window
+            setIsAboutMeWindowOpen(true);
+            bringToFront('aboutMe'); // Bring to front when opening
+          }}
           isSelected={selectedIcon === 'aboutMe'}
           onSelect={() => setSelectedIcon('aboutMe')}
         />
+        <DesktopIcon 
+          iconSrc={PDFIcon} 
+          label="Experience" 
+          onOpen={() => {
+            setSelectedIcon(null); // Deselect when opening window
+            setIsExperienceWindowOpen(true);
+            bringToFront('experience'); // Bring to front when opening
+          }}
+          isSelected={selectedIcon === 'experience'}
+          onSelect={() => setSelectedIcon('experience')}
+        />
       </div>
 
-      {/* Window */}
-      {isWindowOpen && (
+      {/* Windows */}
+      {isAboutMeWindowOpen && (
         <Window 
-          onClose={() => setIsWindowOpen(false)}
+          onClose={() => setIsAboutMeWindowOpen(false)}
           initialPosition={{ x: 100, y: 100 }}
+          title="About Me"
+          titleIcon={NotepadIcon}
+          zIndex={aboutMeZIndex}
+          onFocus={() => bringToFront('aboutMe')}
+        />
+      )}
+      {isExperienceWindowOpen && (
+        <Window 
+          onClose={() => setIsExperienceWindowOpen(false)}
+          initialPosition={{ x: 250, y: 100 }}
+          title="Experience"
+          titleIcon={PDFIcon}
+          zIndex={experienceZIndex}
+          onFocus={() => bringToFront('experience')}
         />
       )}
     </div>

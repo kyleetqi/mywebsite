@@ -14,11 +14,12 @@ export function useWindowResize(initialSize = { width: 500, height: 400 }, minSi
     setResizeDirection(direction);
     if (windowRef.current) {
       const rect = windowRef.current.getBoundingClientRect();
+      // Use actual DOM dimensions to avoid state/DOM mismatch
       setResizeStart({
         x: e.clientX,
         y: e.clientY,
-        width: size.width,
-        height: size.height,
+        width: rect.width,
+        height: rect.height,
         left: rect.left,
         top: rect.top
       });
@@ -41,10 +42,18 @@ export function useWindowResize(initialSize = { width: 500, height: 400 }, minSi
         newWidth = Math.max(minSize.width, resizeStart.width + deltaX);
       }
       if (resizeDirection.includes('w')) {
-        const oldWidth = newWidth;
-        newWidth = Math.max(minSize.width, resizeStart.width - deltaX);
-        // Position should move by the amount the width decreased
-        newPositionDelta.x = oldWidth - newWidth;
+        // Calculate new width: dragging right (positive deltaX) makes window narrower
+        const requestedWidth = resizeStart.width - deltaX;
+        newWidth = Math.max(minSize.width, requestedWidth);
+        
+        // Position should move by the actual width change
+        // When dragging right: window narrower, position moves right
+        // When dragging left: window wider, position moves left
+        const actualWidthChange = resizeStart.width - newWidth;
+        
+        // Only move position if width actually changed
+        // This prevents sliding when window is at minimum width
+        newPositionDelta.x = actualWidthChange;
       }
       if (resizeDirection.includes('s')) {
         // Constrain height to viewport
@@ -52,10 +61,11 @@ export function useWindowResize(initialSize = { width: 500, height: 400 }, minSi
         newHeight = Math.max(minSize.height, Math.min(resizeStart.height + deltaY, maxHeight));
       }
       if (resizeDirection.includes('n')) {
-        const oldHeight = newHeight;
+        // Calculate new height: dragging up (positive deltaY) makes window shorter
         newHeight = Math.max(minSize.height, resizeStart.height - deltaY);
-        // Position should move by the amount the height decreased
-        newPositionDelta.y = oldHeight - newHeight;
+        // Position should move by the amount the height actually changed
+        // This is the difference between original height and new height
+        newPositionDelta.y = resizeStart.height - newHeight;
       }
 
       setSize({ width: newWidth, height: newHeight });

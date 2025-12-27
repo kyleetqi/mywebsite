@@ -1,22 +1,40 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './Window.css';
 import { useWindowResize } from '../hooks/useWindowResize';
+import CloseButton from '../assets/CloseButton.png';
+import CloseButtonHover from '../assets/CloseButtonHover.png';
+import CloseButtonPress from '../assets/CloseButtonPress.png';
+import NotepadIcon from '../assets/Icons/Notepad_WinXP.png';
 
-function Window({ onClose, initialPosition = { x: 100, y: 100 } }) {
+function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About Me", titleIcon = NotepadIcon, zIndex = 100, onFocus }) {
   const [position, setPosition] = useState(initialPosition);
   const [dragging, setDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const { size, handleMouseDown: handleResizeMouseDown, windowRef, positionDelta } = useWindowResize({ width: 600, height: 500 }, { width: 400, height: 300 });
+  const [closeButtonState, setCloseButtonState] = useState('default'); // 'default', 'hover', 'press'
+  const [isCloseButtonPressed, setIsCloseButtonPressed] = useState(false);
+  const resizeStartPosition = useRef(initialPosition);
+  const { size, handleMouseDown: handleResizeMouseDownBase, windowRef, positionDelta, isResizing } = useWindowResize({ width: 600, height: 500 }, { width: 400, height: 300 });
+
+  // Wrap resize handler to capture position when resize starts
+  const handleResizeMouseDown = (e, direction) => {
+    // Capture position synchronously before resize starts
+    resizeStartPosition.current = { x: position.x, y: position.y };
+    handleResizeMouseDownBase(e, direction);
+  };
 
   // Adjust position when resizing from left or top
+  // positionDelta represents total change from resize start, not incremental
   useEffect(() => {
-    if (positionDelta.x !== 0 || positionDelta.y !== 0) {
-      setPosition(prev => ({
-        x: prev.x + positionDelta.x,
-        y: prev.y + positionDelta.y
-      }));
+    if (isResizing && (positionDelta.x !== 0 || positionDelta.y !== 0)) {
+      const newX = resizeStartPosition.current.x + positionDelta.x;
+      const newY = resizeStartPosition.current.y + positionDelta.y;
+      
+      setPosition({
+        x: newX,
+        y: newY
+      });
     }
-  }, [positionDelta]);
+  }, [positionDelta, isResizing]);
 
   const onTopTabMouseDown = (e) => {
     // Don't start dragging if clicking on close button or resize handles
@@ -26,6 +44,11 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 } }) {
     // Only start dragging if clicking on the top frame
     const frameTop = e.target.closest('.frame-top');
     if (!frameTop) return;
+    
+    // Bring window to front when clicking on title bar
+    if (onFocus) {
+      onFocus();
+    }
     
     e.stopPropagation();
     e.preventDefault();
@@ -69,6 +92,20 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 } }) {
     };
   }, [dragging, offset, size]);
 
+  // Handle close button mouse up globally (in case mouse is released outside button)
+  useEffect(() => {
+    if (!isCloseButtonPressed) return;
+    
+    const handleGlobalMouseUp = () => {
+      setIsCloseButtonPressed(false);
+      setCloseButtonState('default');
+      onClose();
+    };
+    
+    document.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, [isCloseButtonPressed, onClose]);
+
   // Constrain position on window resize
   useEffect(() => {
     const handleResize = () => {
@@ -83,31 +120,70 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 } }) {
     return () => window.removeEventListener('resize', handleResize);
   }, [size]);
 
+  const handleWindowMouseDown = (e) => {
+    // Bring window to front when clicked (except on resize handles and close button)
+    // Skip if clicking on title bar (handled by onTopTabMouseDown)
+    if (e.target.closest('.frame-top')) return;
+    
+    if (!e.target.closest('.resize-handle') && !e.target.closest('.window-close-btn')) {
+      if (onFocus) {
+        onFocus();
+      }
+    }
+  };
+
   return (
     <div 
       ref={windowRef}
       className="window"
-      style={{ top: position.y, left: position.x, width: size.width, height: size.height }}
+      style={{ top: position.y, left: position.x, width: size.width, height: size.height, zIndex: zIndex }}
+      onMouseDown={handleWindowMouseDown}
     >
       {/* Window Frame - 9-slice layout */}
       <div className="window-frame">
         {/* Top Row */}
         <div className="frame-top-left"></div>
         <div className="frame-top" onMouseDown={onTopTabMouseDown}>
-          <span className="window-title">About Me</span>
+          <div className="window-title-container">
+            <img src={titleIcon} alt="Icon" className="window-title-icon" />
+            <span className="window-title">{title}</span>
+          </div>
           <button 
             className="window-close-btn" 
+            onMouseEnter={() => {
+              if (closeButtonState !== 'press') {
+                setCloseButtonState('hover');
+              }
+            }}
+            onMouseLeave={() => {
+              if (closeButtonState !== 'press') {
+                setCloseButtonState('default');
+              }
+            }}
             onMouseDown={(e) => {
               e.stopPropagation();
               e.preventDefault();
+              setCloseButtonState('press');
+              setIsCloseButtonPressed(true);
             }}
-            onClick={(e) => { 
-              e.stopPropagation(); 
+            onMouseUp={(e) => {
+              e.stopPropagation();
               e.preventDefault();
-              onClose(); 
+              if (isCloseButtonPressed) {
+                setIsCloseButtonPressed(false);
+                setCloseButtonState('default');
+                onClose();
+              }
             }}
           >
-            ✕
+            <img 
+              src={
+                closeButtonState === 'press' ? CloseButtonPress :
+                closeButtonState === 'hover' ? CloseButtonHover :
+                CloseButton
+              }
+              alt="Close"
+            />
           </button>
         </div>
         <div className="frame-top-right"></div>

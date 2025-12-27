@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import './Folder.css';
 import Notepad from './Notepad';
 import { useWindowResize } from '../hooks/useWindowResize';
-import FileIcon from '../assets/FileIcon.png';
+import FileIcon from '../assets/Icons/FileIcon.png';
 
 const txtFiles = [
   {
