@@ -1,0 +1,15 @@
+.desktop-icon {
+  width: 80px;
+  text-align: center;
+  color: white;
+  cursor: default;
+  user-select: none;
+}
+
+.desktop-icon .icon {
+  font-size: 32px;
+}
+
+.desktop-icon:hover {
+  background: rgba(255,255,255,0.15);
+}

@@ -1,42 +1,83 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-image: url('./assets/background.jpg'); /* put your image in src or public folder */
+  background-size: cover;     /* make it cover the whole screen */
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+
+.container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 20px;
+  text-align: left;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+h1 {
+  color: #ffffff;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+h2.section-header {
+  margin-top: 40px;
+  color: #ffffff;
 }
 
-.card {
-  padding: 2em;
+.experience-item {
+  margin: 10px 0;
 }
 
-.read-the-docs {
-  color: #888;
+.company-icon {
+  margin-right: 8px;
 }
+
+.writing-item {
+  margin: 10px 0;
+}
+
+.writing-content {
+  margin-left: 20px;
+  text-align: left;
+}
+
+.contact-row {
+  display: flex;
+  gap: 30px;
+  margin-top: 20px;
+  justify-content: flex-start;  /* left-align the row */
+}
+
+.contact-link {
+  text-decoration: none;
+  color: inherit;          /* same color as normal text */
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.contact-link .icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.desktop {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+
+  background-image: url('./assets/background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  overflow: hidden;
+}
+
+.desktop-icons {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
