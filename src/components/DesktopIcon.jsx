@@ -1,10 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import './DesktopIcon.css';
 
-function DesktopIcon({ iconSrc, label, onOpen, isSelected, onSelect }) {
+function DesktopIcon({ iconSrc, label, onOpen, isSelected, onSelect, href }) {
   const iconRef = useRef(null);
   const lastTapRef = useRef(0);
   const tapTimeoutRef = useRef(null);
+
+  const handleOpen = () => {
+    if (href) {
+      // Open URL in new tab
+      window.open(href, '_blank', 'noopener,noreferrer');
+    } else if (onOpen) {
+      onOpen();
+    }
+  };
 
   const handleClick = (e) => {
     e.stopPropagation();
@@ -15,7 +24,7 @@ function DesktopIcon({ iconSrc, label, onOpen, isSelected, onSelect }) {
       }
     } else if (e.detail === 2) {
       // Double click - open
-      onOpen();
+      handleOpen();
     }
   };
 
@@ -28,7 +37,7 @@ function DesktopIcon({ iconSrc, label, onOpen, isSelected, onSelect }) {
       // Double tap detected
       clearTimeout(tapTimeoutRef.current);
       lastTapRef.current = 0;
-      onOpen();
+      handleOpen();
     } else {
       // Single tap - select
       if (onSelect) {

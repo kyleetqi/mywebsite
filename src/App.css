@@ -77,12 +77,18 @@ h2.section-header {
 
 .desktop-icons {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  flex-direction: row;
+  gap: 10px;
   padding: 20px;
   position: relative;
   z-index: 10;
   pointer-events: auto;
+}
+
+.desktop-icons-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 

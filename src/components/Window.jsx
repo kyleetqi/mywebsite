@@ -132,30 +132,35 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
         const centeredX = Math.max(padding, (viewportWidth - newWidth) / 2);
         const centeredY = Math.max(padding, (viewportHeight - newHeight) / 2);
         setPosition({ x: centeredX, y: centeredY });
-      } else if (!isSmall && !isResizing && (size.width > viewportWidth - (padding * 2) || size.height > viewportHeight - (padding * 2))) {
-        // Window is too large for viewport - shrink it (for any non-small device)
-        // Only do this when NOT actively resizing to prevent jittering
+      } else if (!isSmall && !isResizing) {
+        // Only shrink window if it actually extends beyond viewport (based on position + size)
+        // Don't apply arbitrary padding - let user resize to edges if they want
         const minWidth = 290;
         const minHeight = 200;
+        
+        // Get current position for accurate bounds checking
+        const currentX = position.x;
+        const currentY = position.y;
+        
+        // Check if right/bottom edges extend beyond viewport
+        const rightEdge = currentX + size.width;
+        const bottomEdge = currentY + size.height;
+        
         let newWidth = size.width;
         let newHeight = size.height;
+        let needsUpdate = false;
         
-        if (newWidth > viewportWidth - (padding * 2)) {
-          newWidth = Math.max(minWidth, viewportWidth - (padding * 2));
+        if (rightEdge > viewportWidth) {
+          newWidth = Math.max(minWidth, viewportWidth - currentX);
+          needsUpdate = true;
         }
-        if (newHeight > viewportHeight - (padding * 2)) {
-          newHeight = Math.max(minHeight, viewportHeight - (padding * 2));
+        if (bottomEdge > viewportHeight) {
+          newHeight = Math.max(minHeight, viewportHeight - currentY);
+          needsUpdate = true;
         }
         
-        if (newWidth !== size.width || newHeight !== size.height) {
+        if (needsUpdate) {
           setSize({ width: newWidth, height: newHeight });
-          // Recalculate position to keep window on screen
-          const maxX = Math.max(0, viewportWidth - newWidth);
-          const maxY = Math.max(0, viewportHeight - newHeight);
-          setPosition(prev => ({
-            x: Math.max(0, Math.min(prev.x, maxX)),
-            y: Math.max(0, Math.min(prev.y, maxY))
-          }));
         }
       }
       // Don't auto-center during resize if already medium - let user drag/resize normally
@@ -166,7 +171,7 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
     checkDeviceSize();
     window.addEventListener('resize', checkDeviceSize);
     return () => window.removeEventListener('resize', checkDeviceSize);
-  }, [setSize, size, isResizing]);
+  }, [setSize, size, isResizing, position]);
 
   // Wrap resize handler to capture position and size when resize starts
   const handleResizeMouseDown = (e, direction) => {

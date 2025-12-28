@@ -5,14 +5,21 @@ import { useState, useEffect, useRef } from 'react';
 import AboutMeIcon from './assets/Icons/AboutMeIcon.png';
 import PDFIcon from './assets/Icons/PDFIcon.png';
 import NotepadIcon from './assets/Icons/Notepad_WinXP.png';
+import FolderIcon from './assets/Icons/FolderIcon.png';
+import FileIcon from './assets/Icons/FileIcon.png';
+import MailIcon from './assets/Icons/MailIcon.png';
+import MessengerIcon from './assets/Icons/MessengerIcon.png';
+import TerminalIcon from './assets/Icons/TerminalIcon.png';
 
 function App() {
   const [isAboutMeWindowOpen, setIsAboutMeWindowOpen] = useState(false);
   const [isExperienceWindowOpen, setIsExperienceWindowOpen] = useState(false);
+  const [isWritingsWindowOpen, setIsWritingsWindowOpen] = useState(false);
   const [selectedIcon, setSelectedIcon] = useState(null);
   const maxZIndexRef = useRef(100);
   const [aboutMeZIndex, setAboutMeZIndex] = useState(100);
   const [experienceZIndex, setExperienceZIndex] = useState(100);
+  const [writingsZIndex, setWritingsZIndex] = useState(100);
 
   const bringToFront = (windowType) => {
     maxZIndexRef.current += 1;
@@ -20,6 +27,8 @@ function App() {
       setAboutMeZIndex(maxZIndexRef.current);
     } else if (windowType === 'experience') {
       setExperienceZIndex(maxZIndexRef.current);
+    } else if (windowType === 'writings') {
+      setWritingsZIndex(maxZIndexRef.current);
     }
   };
 
@@ -44,28 +53,67 @@ function App() {
     <div className="desktop">
       {/* Desktop Icons */}
       <div className="desktop-icons">
-        <DesktopIcon 
-          iconSrc={AboutMeIcon} 
-          label="About Me" 
-          onOpen={() => {
-            setSelectedIcon(null); // Deselect when opening window
-            setIsAboutMeWindowOpen(true);
-            bringToFront('aboutMe'); // Bring to front when opening
-          }}
-          isSelected={selectedIcon === 'aboutMe'}
-          onSelect={() => setSelectedIcon('aboutMe')}
-        />
-        <DesktopIcon 
-          iconSrc={PDFIcon} 
-          label="Experience" 
-          onOpen={() => {
-            setSelectedIcon(null); // Deselect when opening window
-            setIsExperienceWindowOpen(true);
-            bringToFront('experience'); // Bring to front when opening
-          }}
-          isSelected={selectedIcon === 'experience'}
-          onSelect={() => setSelectedIcon('experience')}
-        />
+        {/* First Column */}
+        <div className="desktop-icons-column">
+          <DesktopIcon 
+            iconSrc={AboutMeIcon} 
+            label="About Me" 
+            onOpen={() => {
+              setSelectedIcon(null);
+              setIsAboutMeWindowOpen(true);
+              bringToFront('aboutMe');
+            }}
+            isSelected={selectedIcon === 'aboutMe'}
+            onSelect={() => setSelectedIcon('aboutMe')}
+          />
+          <DesktopIcon 
+            iconSrc={PDFIcon} 
+            label="Experience" 
+            onOpen={() => {
+              setSelectedIcon(null);
+              setIsExperienceWindowOpen(true);
+              bringToFront('experience');
+            }}
+            isSelected={selectedIcon === 'experience'}
+            onSelect={() => setSelectedIcon('experience')}
+          />
+          <DesktopIcon 
+            iconSrc={FolderIcon} 
+            label="Writings" 
+            onOpen={() => {
+              setSelectedIcon(null);
+              setIsWritingsWindowOpen(true);
+              bringToFront('writings');
+            }}
+            isSelected={selectedIcon === 'writings'}
+            onSelect={() => setSelectedIcon('writings')}
+          />
+        </div>
+        
+        {/* Second Column - External Links */}
+        <div className="desktop-icons-column">
+          <DesktopIcon 
+            iconSrc={MessengerIcon} 
+            label="LinkedIn" 
+            href="https://www.linkedin.com/in/kyleqi-"
+            isSelected={selectedIcon === 'linkedin'}
+            onSelect={() => setSelectedIcon('linkedin')}
+          />
+          <DesktopIcon 
+            iconSrc={TerminalIcon} 
+            label="GitHub" 
+            href="https://www.github.com/kyle-qi"
+            isSelected={selectedIcon === 'github'}
+            onSelect={() => setSelectedIcon('github')}
+          />
+          <DesktopIcon 
+            iconSrc={MailIcon} 
+            label="Email" 
+            href="mailto:contact@kyleqi.com"
+            isSelected={selectedIcon === 'email'}
+            onSelect={() => setSelectedIcon('email')}
+          />
+        </div>
       </div>
 
       {/* Windows */}
@@ -92,6 +140,16 @@ Feel free to explore the different sections using the desktop icons. Each window
           titleIcon={PDFIcon}
           zIndex={experienceZIndex}
           onFocus={() => bringToFront('experience')}
+        />
+      )}
+      {isWritingsWindowOpen && (
+        <Window 
+          onClose={() => setIsWritingsWindowOpen(false)}
+          initialPosition={{ x: 150, y: 150 }}
+          title="Writings"
+          titleIcon={FolderIcon}
+          zIndex={writingsZIndex}
+          onFocus={() => bringToFront('writings')}
         />
       )}
     </div>
