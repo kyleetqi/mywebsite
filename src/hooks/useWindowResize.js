@@ -8,16 +8,24 @@ export function useWindowResize(initialSize = { width: 500, height: 400 }, minSi
   const [positionDelta, setPositionDelta] = useState({ x: 0, y: 0 });
   const windowRef = useRef(null);
 
+  const getEventCoordinates = (e) => {
+    if (e.touches && e.touches.length > 0) {
+      return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+    return { x: e.clientX, y: e.clientY };
+  };
+
   const handleMouseDown = (e, direction) => {
     e.stopPropagation();
     setIsResizing(true);
     setResizeDirection(direction);
     if (windowRef.current) {
       const rect = windowRef.current.getBoundingClientRect();
+      const coords = getEventCoordinates(e);
       // Use actual DOM dimensions to avoid state/DOM mismatch
       setResizeStart({
-        x: e.clientX,
-        y: e.clientY,
+        x: coords.x,
+        y: coords.y,
         width: rect.width,
         height: rect.height,
         left: rect.left,
@@ -28,11 +36,15 @@ export function useWindowResize(initialSize = { width: 500, height: 400 }, minSi
   };
 
   useEffect(() => {
-    const handleMouseMove = (e) => {
+    const handleMove = (e) => {
       if (!isResizing) return;
 
-      const deltaX = e.clientX - resizeStart.x;
-      const deltaY = e.clientY - resizeStart.y;
+      const coords = e.touches && e.touches.length > 0
+        ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
+        : { x: e.clientX, y: e.clientY };
+
+      const deltaX = coords.x - resizeStart.x;
+      const deltaY = coords.y - resizeStart.y;
 
       let newWidth = resizeStart.width;
       let newHeight = resizeStart.height;
@@ -72,20 +84,27 @@ export function useWindowResize(initialSize = { width: 500, height: 400 }, minSi
       setPositionDelta(newPositionDelta);
     };
 
-    const handleMouseUp = () => {
+    const handleEnd = (e) => {
+      if (e.type === 'touchend') {
+        e.preventDefault();
+      }
       setIsResizing(false);
       setResizeDirection(null);
       setPositionDelta({ x: 0, y: 0 });
     };
 
     if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('mousemove', handleMove, { passive: false });
+      document.addEventListener('mouseup', handleEnd, { passive: false });
+      document.addEventListener('touchmove', handleMove, { passive: false });
+      document.addEventListener('touchend', handleEnd, { passive: false });
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mousemove', handleMove);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchmove', handleMove);
+      document.removeEventListener('touchend', handleEnd);
     };
   }, [isResizing, resizeDirection, resizeStart, minSize, size]);
 

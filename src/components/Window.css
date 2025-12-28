@@ -1,13 +1,14 @@
 .window {
   position: absolute;
-  min-width: 400px;
-  min-height: 300px;
+  min-width: 290px;
+  min-height: 200px;
   cursor: default;
   user-select: none;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   font-family: Tahoma, sans-serif;
+  touch-action: none;
 }
 
 .window-title-container {
@@ -86,6 +87,7 @@
 }
 
 .frame-top {
+  touch-action: none;
   grid-column: 2;
   grid-row: 1;
   background-image: url('../assets/Window/WindowFrameTop.png');
@@ -124,17 +126,20 @@
   background-size: 100% auto;
   background-position: right;
   width: 6px;
-  min-height: 100px;
+  min-height: 50px;
 }
 
 .frame-center {
   grid-column: 2;
   grid-row: 2;
-  background-color: #efeee0;
+  /* background-color: #efeee0; */
+  background-color:#ffffff;
   overflow: auto;
   position: relative;
   min-width: 100px;
   min-height: 100px;
+  display: flex;
+  flex-direction: column;
 }
 
 .frame-right {
@@ -183,6 +188,7 @@
   position: absolute;
   background: transparent;
   z-index: 10;
+  touch-action: none;
 }
 
 .resize-handle-n {

@@ -73,10 +73,15 @@ function App() {
         <Window 
           onClose={() => setIsAboutMeWindowOpen(false)}
           initialPosition={{ x: 100, y: 100 }}
-          title="About Me"
+          title="About Me - Notepad"
           titleIcon={NotepadIcon}
           zIndex={aboutMeZIndex}
           onFocus={() => bringToFront('aboutMe')}
+          notepadContent={`Welcome to my personal website! This is a Windows XP-themed portfolio where you can explore my work and experience.
+
+I'm a mechatronics engineer passionate about robotics, automation, and creating innovative solutions that bridge the gap between hardware and software.
+
+Feel free to explore the different sections using the desktop icons. Each window contains information about different aspects of my background and interests.`}
         />
       )}
       {isExperienceWindowOpen && (

@@ -112,7 +112,6 @@
   width: 5px;
   cursor: e-resize;
 }
-
 .resize-handle-w {
   top: 5px;
   left: 0;
@@ -152,4 +151,5 @@
   height: 5px;
   cursor: sw-resize;
 }
+
 
