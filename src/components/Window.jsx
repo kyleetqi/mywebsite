@@ -8,43 +8,174 @@ import NotepadIcon from '../assets/Icons/Notepad_WinXP.png';
 import NotepadMenu from './NotepadMenu';
 
 function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About Me", titleIcon = NotepadIcon, zIndex = 100, onFocus, notepadContent }) {
-  const [position, setPosition] = useState(initialPosition);
+  // Calculate initial position and size based on viewport size to prevent offscreen windows
+  const getInitialState = () => {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const defaultWidth = 600;
+    const defaultHeight = 500;
+    const padding = 15;
+    const minWidth = 290;
+    const minHeight = 200;
+    
+    // Check if small device
+    const isSmall = viewportWidth <= 480 || viewportHeight <= 480;
+    
+    // Calculate actual window size (may need to shrink if viewport is too small)
+    let windowWidth = defaultWidth;
+    let windowHeight = defaultHeight;
+    
+    // If window is larger than viewport (minus padding), shrink it
+    if (windowWidth > viewportWidth - (padding * 2)) {
+      windowWidth = Math.max(minWidth, viewportWidth - (padding * 2));
+    }
+    if (windowHeight > viewportHeight - (padding * 2)) {
+      windowHeight = Math.max(minHeight, viewportHeight - (padding * 2));
+    }
+    
+    // Check if medium device (larger than small threshold but smaller than default + padding)
+    const isMedium = !isSmall && (viewportWidth < defaultWidth + (padding * 2) || viewportHeight < defaultHeight + (padding * 2));
+    
+    let position;
+    if (isSmall) {
+      // Small device: full screen minus 30px
+      windowWidth = viewportWidth - 30;
+      windowHeight = viewportHeight - 30;
+      position = { x: 15, y: 15 };
+    } else if (isMedium) {
+      // Center with 15px padding on medium devices
+      const centeredX = Math.max(padding, (viewportWidth - windowWidth) / 2);
+      const centeredY = Math.max(padding, (viewportHeight - windowHeight) / 2);
+      position = { x: centeredX, y: centeredY };
+    } else {
+      // For large devices, use provided initialPosition but ensure it's on screen
+      const maxX = Math.max(0, viewportWidth - windowWidth);
+      const maxY = Math.max(0, viewportHeight - windowHeight);
+      position = {
+        x: Math.max(0, Math.min(initialPosition.x, maxX)),
+        y: Math.max(0, Math.min(initialPosition.y, maxY))
+      };
+    }
+    
+    return { position, size: { width: windowWidth, height: windowHeight } };
+  };
+  
+  const initialState = getInitialState();
+  const [position, setPosition] = useState(initialState.position);
   const [dragging, setDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [closeButtonState, setCloseButtonState] = useState('default'); // 'default', 'hover', 'press'
   const [isCloseButtonPressed, setIsCloseButtonPressed] = useState(false);
   const [isSmallDevice, setIsSmallDevice] = useState(false);
-  const resizeStartPosition = useRef(initialPosition);
-  const { size, setSize, handleMouseDown: handleResizeMouseDownBase, windowRef, positionDelta, isResizing } = useWindowResize({ width: 600, height: 500 }, { width: 290, height: 200 });
+  const [isMediumDevice, setIsMediumDevice] = useState(false);
+  const resizeStartPosition = useRef(initialState.position);
+  const resizeStartSize = useRef(initialState.size);
+  const { size, setSize, handleMouseDown: handleResizeMouseDownBase, windowRef, positionDelta, isResizing, resizeDirection } = useWindowResize(initialState.size, { width: 290, height: 200 });
 
-  // Detect small mobile devices (like iPhone)
+  // Track previous device state to detect transitions
+  const prevDeviceStateRef = useRef({ isSmall: false, isMedium: false });
+  
+  // Detect device size (small, medium, or large)
   useEffect(() => {
     const checkDeviceSize = () => {
-      const isSmall = window.innerWidth <= 480 || window.innerHeight <= 480;
-      setIsSmallDevice(isSmall);
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const defaultWidth = 600;
+      const defaultHeight = 500;
+      const padding = 15;
       
-      if (isSmall) {
-        // Set window to full screen minus 30px total (15px padding on each side)
-        const newWidth = window.innerWidth - 30;
-        const newHeight = window.innerHeight - 30;
+      // Small device: <= 480px
+      const isSmall = viewportWidth <= 480 || viewportHeight <= 480;
+      const wasSmall = prevDeviceStateRef.current.isSmall;
+      
+      // Medium device: larger than small but smaller than default window size + padding
+      // Upper bound: default window size (600x500) + 30px padding = 630x530
+      const isMedium = !isSmall && (viewportWidth < defaultWidth + (padding * 2) || viewportHeight < defaultHeight + (padding * 2));
+      const wasMedium = prevDeviceStateRef.current.isMedium;
+      
+      setIsSmallDevice(isSmall);
+      setIsMediumDevice(isMedium);
+      
+      // Only adjust size/position when transitioning to small device or on initial load
+      if (isSmall && !wasSmall) {
+        // Transitioning to small device - set window to full screen minus 30px
+        const newWidth = viewportWidth - 30;
+        const newHeight = viewportHeight - 30;
         setSize({ width: newWidth, height: newHeight });
         // Center the window with 15px padding
         setPosition({ x: 15, y: 15 });
+      } else if (isSmall && wasSmall) {
+        // Already small device, just update size on resize
+        const newWidth = viewportWidth - 30;
+        const newHeight = viewportHeight - 30;
+        setSize({ width: newWidth, height: newHeight });
+        // Don't reset position - allow dragging
+      } else if (isMedium && !wasMedium && !wasSmall) {
+        // Transitioning to medium device from large - ensure window fits and center it
+        const minWidth = 290;
+        const minHeight = 200;
+        let newWidth = size.width;
+        let newHeight = size.height;
+        
+        // Shrink window if it's too large for viewport
+        if (newWidth > viewportWidth - (padding * 2)) {
+          newWidth = Math.max(minWidth, viewportWidth - (padding * 2));
+        }
+        if (newHeight > viewportHeight - (padding * 2)) {
+          newHeight = Math.max(minHeight, viewportHeight - (padding * 2));
+        }
+        
+        if (newWidth !== size.width || newHeight !== size.height) {
+          setSize({ width: newWidth, height: newHeight });
+        }
+        
+        const centeredX = Math.max(padding, (viewportWidth - newWidth) / 2);
+        const centeredY = Math.max(padding, (viewportHeight - newHeight) / 2);
+        setPosition({ x: centeredX, y: centeredY });
+      } else if (!isSmall && !isResizing && (size.width > viewportWidth - (padding * 2) || size.height > viewportHeight - (padding * 2))) {
+        // Window is too large for viewport - shrink it (for any non-small device)
+        // Only do this when NOT actively resizing to prevent jittering
+        const minWidth = 290;
+        const minHeight = 200;
+        let newWidth = size.width;
+        let newHeight = size.height;
+        
+        if (newWidth > viewportWidth - (padding * 2)) {
+          newWidth = Math.max(minWidth, viewportWidth - (padding * 2));
+        }
+        if (newHeight > viewportHeight - (padding * 2)) {
+          newHeight = Math.max(minHeight, viewportHeight - (padding * 2));
+        }
+        
+        if (newWidth !== size.width || newHeight !== size.height) {
+          setSize({ width: newWidth, height: newHeight });
+          // Recalculate position to keep window on screen
+          const maxX = Math.max(0, viewportWidth - newWidth);
+          const maxY = Math.max(0, viewportHeight - newHeight);
+          setPosition(prev => ({
+            x: Math.max(0, Math.min(prev.x, maxX)),
+            y: Math.max(0, Math.min(prev.y, maxY))
+          }));
+        }
       }
+      // Don't auto-center during resize if already medium - let user drag/resize normally
+      
+      prevDeviceStateRef.current = { isSmall, isMedium };
     };
     
     checkDeviceSize();
     window.addEventListener('resize', checkDeviceSize);
     return () => window.removeEventListener('resize', checkDeviceSize);
-  }, [setSize]);
+  }, [setSize, size, isResizing]);
 
-  // Wrap resize handler to capture position when resize starts
+  // Wrap resize handler to capture position and size when resize starts
   const handleResizeMouseDown = (e, direction) => {
     // Don't allow resizing on small devices
     if (isSmallDevice) return;
     
-    // Capture position synchronously before resize starts
+    // Capture position and size synchronously before resize starts
     resizeStartPosition.current = { x: position.x, y: position.y };
+    resizeStartSize.current = { width: size.width, height: size.height };
     handleResizeMouseDownBase(e, direction);
   };
 
@@ -52,19 +183,52 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
     handleResizeMouseDown(e, direction);
   };
 
-  // Adjust position when resizing from left or top
-  // positionDelta represents total change from resize start, not incremental
-  useEffect(() => {
-    if (isResizing && (positionDelta.x !== 0 || positionDelta.y !== 0)) {
-      const newX = resizeStartPosition.current.x + positionDelta.x;
-      const newY = resizeStartPosition.current.y + positionDelta.y;
-      
-      setPosition({
-        x: newX,
-        y: newY
-      });
+  // Track if we were resizing in the previous render to detect when resize ends
+  const wasResizingRef = useRef(false);
+  // Store the last resize direction so we can use it when resize ends
+  const lastResizeDirectionRef = useRef(null);
+  
+  // Update last resize direction during resize
+  if (isResizing && resizeDirection) {
+    lastResizeDirectionRef.current = resizeDirection;
+  }
+  
+  // Calculate effective position during resize directly from size change
+  // This ensures position and size are always perfectly in sync (derived from same source)
+  // For left/top resize, position = startPosition + (startSize - currentSize)
+  const calculateEffectivePosition = (direction) => {
+    let x = resizeStartPosition.current.x;
+    let y = resizeStartPosition.current.y;
+    
+    if (direction && direction.includes('w')) {
+      // Left resize: right edge stays fixed, so position moves by width change
+      x = resizeStartPosition.current.x + (resizeStartSize.current.width - size.width);
     }
-  }, [positionDelta, isResizing]);
+    if (direction && direction.includes('n')) {
+      // Top resize: bottom edge stays fixed, so position moves by height change
+      y = resizeStartPosition.current.y + (resizeStartSize.current.height - size.height);
+    }
+    
+    return { x, y };
+  };
+  
+  const effectivePosition = isResizing
+    ? calculateEffectivePosition(resizeDirection)
+    : (wasResizingRef.current && !isResizing)
+      ? calculateEffectivePosition(lastResizeDirectionRef.current)
+      : position;
+  
+  // Sync final position to state when resize ends
+  useEffect(() => {
+    if (wasResizingRef.current && !isResizing) {
+      // Resize just ended - commit the final position
+      const finalPosition = calculateEffectivePosition(lastResizeDirectionRef.current);
+      setPosition(finalPosition);
+      // Reset the ref for next resize
+      lastResizeDirectionRef.current = null;
+    }
+    wasResizingRef.current = isResizing;
+  }, [isResizing, size]);
 
   // Helper to get coordinates from mouse or touch event
   const getEventCoordinates = (e) => {
@@ -189,6 +353,7 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
           y: Math.max(0, Math.min(prev.y, maxY))
         }));
       } else {
+        // For medium and large devices, just constrain to viewport (don't auto-center during resize)
         const maxX = window.innerWidth - size.width;
         const maxY = window.innerHeight - size.height;
         setPosition(prev => ({
@@ -221,7 +386,7 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
     <div 
       ref={windowRef}
       className="window"
-      style={{ top: position.y, left: position.x, width: size.width, height: size.height, zIndex: zIndex }}
+      style={{ top: effectivePosition.y, left: effectivePosition.x, width: size.width, height: size.height, zIndex: zIndex }}
       onMouseDown={handleWindowMouseDown}
       onTouchStart={handleWindowTouchStart}
     >

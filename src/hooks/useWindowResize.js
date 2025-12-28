@@ -38,6 +38,9 @@ export function useWindowResize(initialSize = { width: 500, height: 400 }, minSi
   useEffect(() => {
     const handleMove = (e) => {
       if (!isResizing) return;
+      
+      // Prevent default to stop browser scroll/zoom during resize
+      e.preventDefault();
 
       const coords = e.touches && e.touches.length > 0
         ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
@@ -51,12 +54,18 @@ export function useWindowResize(initialSize = { width: 500, height: 400 }, minSi
       let newPositionDelta = { x: 0, y: 0 };
 
       if (resizeDirection.includes('e')) {
-        newWidth = Math.max(minSize.width, resizeStart.width + deltaX);
+        // Constrain width so right edge doesn't exceed viewport
+        const maxWidth = window.innerWidth - resizeStart.left;
+        newWidth = Math.max(minSize.width, Math.min(resizeStart.width + deltaX, maxWidth));
       }
       if (resizeDirection.includes('w')) {
         // Calculate new width: dragging right (positive deltaX) makes window narrower
         const requestedWidth = resizeStart.width - deltaX;
-        newWidth = Math.max(minSize.width, requestedWidth);
+        
+        // Constrain so left edge doesn't go past x=0
+        // Max width when resizing west = right edge position = left + width
+        const maxWidthWest = resizeStart.left + resizeStart.width;
+        newWidth = Math.max(minSize.width, Math.min(requestedWidth, maxWidthWest));
         
         // Position should move by the actual width change
         // When dragging right: window narrower, position moves right
@@ -68,13 +77,19 @@ export function useWindowResize(initialSize = { width: 500, height: 400 }, minSi
         newPositionDelta.x = actualWidthChange;
       }
       if (resizeDirection.includes('s')) {
-        // Constrain height to viewport
-        const maxHeight = window.innerHeight - (windowRef.current?.getBoundingClientRect().top || 0);
+        // Constrain height so bottom edge doesn't exceed viewport
+        const maxHeight = window.innerHeight - resizeStart.top;
         newHeight = Math.max(minSize.height, Math.min(resizeStart.height + deltaY, maxHeight));
       }
       if (resizeDirection.includes('n')) {
-        // Calculate new height: dragging up (positive deltaY) makes window shorter
-        newHeight = Math.max(minSize.height, resizeStart.height - deltaY);
+        // Calculate new height: dragging up (negative deltaY) makes window taller
+        const requestedHeight = resizeStart.height - deltaY;
+        
+        // Constrain so top edge doesn't go past y=0
+        // Max height when resizing north = bottom edge position = top + height
+        const maxHeightNorth = resizeStart.top + resizeStart.height;
+        newHeight = Math.max(minSize.height, Math.min(requestedHeight, maxHeightNorth));
+        
         // Position should move by the amount the height actually changed
         // This is the difference between original height and new height
         newPositionDelta.y = resizeStart.height - newHeight;
@@ -106,7 +121,7 @@ export function useWindowResize(initialSize = { width: 500, height: 400 }, minSi
       document.removeEventListener('touchmove', handleMove);
       document.removeEventListener('touchend', handleEnd);
     };
-  }, [isResizing, resizeDirection, resizeStart, minSize, size]);
+  }, [isResizing, resizeDirection, resizeStart, minSize]);
 
   // Handle browser window resize
   useEffect(() => {
@@ -127,6 +142,6 @@ export function useWindowResize(initialSize = { width: 500, height: 400 }, minSi
     return () => window.removeEventListener('resize', handleWindowResize);
   }, [minSize]);
 
-  return { size, setSize, isResizing, handleMouseDown, windowRef, positionDelta };
+  return { size, setSize, isResizing, handleMouseDown, windowRef, positionDelta, resizeDirection };
 }
 
