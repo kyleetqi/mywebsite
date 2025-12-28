@@ -297,10 +297,10 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
           y: Math.max(0, Math.min(newY, maxY)),
         });
       } else {
-        setPosition({
-          x: Math.max(0, Math.min(newX, maxX)),
-          y: Math.max(0, Math.min(newY, maxY)),
-        });
+      setPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY)),
+      });
       }
     };
     
@@ -359,12 +359,12 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
         }));
       } else {
         // For medium and large devices, just constrain to viewport (don't auto-center during resize)
-        const maxX = window.innerWidth - size.width;
-        const maxY = window.innerHeight - size.height;
-        setPosition(prev => ({
-          x: Math.max(0, Math.min(prev.x, maxX)),
-          y: Math.max(0, Math.min(prev.y, maxY))
-        }));
+      const maxX = window.innerWidth - size.width;
+      const maxY = window.innerHeight - size.height;
+      setPosition(prev => ({
+        x: Math.max(0, Math.min(prev.x, maxX)),
+        y: Math.max(0, Math.min(prev.y, maxY))
+      }));
       }
     };
     window.addEventListener('resize', handleResize);
@@ -438,12 +438,12 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
               setIsCloseButtonPressed(true);
             }}
             onTouchEnd={(e) => {
-              e.stopPropagation();
+              e.stopPropagation(); 
               e.preventDefault();
               if (isCloseButtonPressed) {
                 setIsCloseButtonPressed(false);
                 setCloseButtonState('default');
-                onClose();
+              onClose(); 
               }
             }}
           >

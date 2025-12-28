@@ -55,17 +55,17 @@ function App() {
       <div className="desktop-icons">
         {/* First Column */}
         <div className="desktop-icons-column">
-          <DesktopIcon 
-            iconSrc={AboutMeIcon} 
-            label="About Me" 
+        <DesktopIcon 
+          iconSrc={AboutMeIcon} 
+          label="About Me" 
             onOpen={() => {
               setSelectedIcon(null);
               setIsAboutMeWindowOpen(true);
               bringToFront('aboutMe');
             }}
-            isSelected={selectedIcon === 'aboutMe'}
-            onSelect={() => setSelectedIcon('aboutMe')}
-          />
+          isSelected={selectedIcon === 'aboutMe'}
+          onSelect={() => setSelectedIcon('aboutMe')}
+        />
           <DesktopIcon 
             iconSrc={PDFIcon} 
             label="Experience" 
