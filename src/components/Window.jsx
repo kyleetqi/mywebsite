@@ -33,20 +33,12 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
       windowHeight = Math.max(minHeight, viewportHeight - (padding * 2));
     }
     
-    // Check if medium device (larger than small threshold but smaller than default + padding)
-    const isMedium = !isSmall && (viewportWidth < defaultWidth + (padding * 2) || viewportHeight < defaultHeight + (padding * 2));
-    
     let position;
     if (isSmall) {
       // Small device: full screen minus 30px
       windowWidth = viewportWidth - 30;
       windowHeight = viewportHeight - 30;
       position = { x: 15, y: 15 };
-    } else if (isMedium) {
-      // Center with 15px padding on medium devices
-      const centeredX = Math.max(padding, (viewportWidth - windowWidth) / 2);
-      const centeredY = Math.max(padding, (viewportHeight - windowHeight) / 2);
-      position = { x: centeredX, y: centeredY };
     } else {
       // For large devices, use provided initialPosition but ensure it's on screen
       const maxX = Math.max(0, viewportWidth - windowWidth);
@@ -67,71 +59,34 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
   const [closeButtonState, setCloseButtonState] = useState('default'); // 'default', 'hover', 'press'
   const [isCloseButtonPressed, setIsCloseButtonPressed] = useState(false);
   const [isSmallDevice, setIsSmallDevice] = useState(false);
-  const [isMediumDevice, setIsMediumDevice] = useState(false);
   const resizeStartPosition = useRef(initialState.position);
   const resizeStartSize = useRef(initialState.size);
   const { size, setSize, handleMouseDown: handleResizeMouseDownBase, windowRef, positionDelta, isResizing, resizeDirection } = useWindowResize(initialState.size, { width: 290, height: 200 });
 
   // Track previous device state to detect transitions
-  const prevDeviceStateRef = useRef({ isSmall: false, isMedium: false });
+  const prevDeviceStateRef = useRef({ isSmall: false });
   
-  // Detect device size (small, medium, or large)
+  // Detect device size (small or large)
   useEffect(() => {
     const checkDeviceSize = () => {
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      const defaultWidth = 600;
-      const defaultHeight = 500;
-      const padding = 15;
       
       // Small device: <= 480px
       const isSmall = viewportWidth <= 480 || viewportHeight <= 480;
       const wasSmall = prevDeviceStateRef.current.isSmall;
       
-      // Medium device: larger than small but smaller than default window size + padding
-      // Upper bound: default window size (600x500) + 30px padding = 630x530
-      const isMedium = !isSmall && (viewportWidth < defaultWidth + (padding * 2) || viewportHeight < defaultHeight + (padding * 2));
-      const wasMedium = prevDeviceStateRef.current.isMedium;
-      
       setIsSmallDevice(isSmall);
-      setIsMediumDevice(isMedium);
       
       // Only adjust size/position when transitioning to small device or on initial load
-      if (isSmall && !wasSmall) {
+      // Don't auto-resize if user is currently resizing manually
+      if (isSmall && !wasSmall && !isResizing) {
         // Transitioning to small device - set window to full screen minus 30px
         const newWidth = viewportWidth - 30;
         const newHeight = viewportHeight - 30;
         setSize({ width: newWidth, height: newHeight });
         // Center the window with 15px padding
         setPosition({ x: 15, y: 15 });
-      } else if (isSmall && wasSmall) {
-        // Already small device, just update size on resize
-        const newWidth = viewportWidth - 30;
-        const newHeight = viewportHeight - 30;
-        setSize({ width: newWidth, height: newHeight });
-        // Don't reset position - allow dragging
-      } else if (isMedium && !wasMedium && !wasSmall) {
-        // Transitioning to medium device from large - ensure window fits and center it
-        const minWidth = 290;
-        const minHeight = 200;
-        let newWidth = size.width;
-        let newHeight = size.height;
-        
-        // Shrink window if it's too large for viewport
-        if (newWidth > viewportWidth - (padding * 2)) {
-          newWidth = Math.max(minWidth, viewportWidth - (padding * 2));
-        }
-        if (newHeight > viewportHeight - (padding * 2)) {
-          newHeight = Math.max(minHeight, viewportHeight - (padding * 2));
-        }
-        
-        if (newWidth !== size.width || newHeight !== size.height) {
-          setSize({ width: newWidth, height: newHeight });
-        }
-        
-        const centeredX = Math.max(padding, (viewportWidth - newWidth) / 2);
-        const centeredY = Math.max(padding, (viewportHeight - newHeight) / 2);
-        setPosition({ x: centeredX, y: centeredY });
       } else if (!isSmall && !isResizing) {
         // Only shrink window if it actually extends beyond viewport (based on position + size)
         // Don't apply arbitrary padding - let user resize to edges if they want
@@ -163,9 +118,8 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
           setSize({ width: newWidth, height: newHeight });
         }
       }
-      // Don't auto-center during resize if already medium - let user drag/resize normally
       
-      prevDeviceStateRef.current = { isSmall, isMedium };
+      prevDeviceStateRef.current = { isSmall };
     };
     
     checkDeviceSize();
@@ -175,9 +129,6 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
 
   // Wrap resize handler to capture position and size when resize starts
   const handleResizeMouseDown = (e, direction) => {
-    // Don't allow resizing on small devices
-    if (isSmallDevice) return;
-    
     // Capture position and size synchronously before resize starts
     resizeStartPosition.current = { x: position.x, y: position.y };
     resizeStartSize.current = { width: size.width, height: size.height };
@@ -345,31 +296,17 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
   // Constrain position on window resize
   useEffect(() => {
     const handleResize = () => {
-      if (isSmallDevice) {
-        // On small devices, keep window at full size minus 30px (15px padding each side)
-        const newWidth = window.innerWidth - 30;
-        const newHeight = window.innerHeight - 30;
-        setSize({ width: newWidth, height: newHeight });
-        // Constrain position to viewport (can be dragged to edges)
-        const maxX = window.innerWidth - newWidth; // Should be 30
-        const maxY = window.innerHeight - newHeight; // Should be 30
-        setPosition(prev => ({
-          x: Math.max(0, Math.min(prev.x, maxX)),
-          y: Math.max(0, Math.min(prev.y, maxY))
-        }));
-      } else {
-        // For medium and large devices, just constrain to viewport (don't auto-center during resize)
+      // For all devices, just constrain to viewport (don't auto-resize on small devices)
       const maxX = window.innerWidth - size.width;
       const maxY = window.innerHeight - size.height;
       setPosition(prev => ({
         x: Math.max(0, Math.min(prev.x, maxX)),
         y: Math.max(0, Math.min(prev.y, maxY))
       }));
-      }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [size, isSmallDevice, setSize]);
+  }, [size]);
 
   const handleWindowMouseDown = (e) => {
     // Bring window to front when clicked (except on resize handles and close button)
@@ -472,31 +409,39 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
         <div className="frame-bottom-right"></div>
       </div>
       
-      {/* Resize Handles - Hidden on small devices */}
-      {!isSmallDevice && (
-        <>
-          <div className="resize-handle resize-handle-s" 
-            onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 's'); }}
-            onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 's'); }}
-          ></div>
-          <div className="resize-handle resize-handle-e" 
-            onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'e'); }}
-            onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'e'); }}
-          ></div>
-          <div className="resize-handle resize-handle-w" 
-            onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'w'); }}
-            onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'w'); }}
-          ></div>
-          <div className="resize-handle resize-handle-se" 
-            onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'se'); }}
-            onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'se'); }}
-          ></div>
-          <div className="resize-handle resize-handle-sw" 
-            onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'sw'); }}
-            onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'sw'); }}
-          ></div>
-        </>
-      )}
+      {/* Resize Handles */}
+      <div className="resize-handle resize-handle-n" 
+        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'n'); }}
+        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'n'); }}
+      ></div>
+      <div className="resize-handle resize-handle-s" 
+        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 's'); }}
+        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 's'); }}
+      ></div>
+      <div className="resize-handle resize-handle-e" 
+        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'e'); }}
+        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'e'); }}
+      ></div>
+      <div className="resize-handle resize-handle-w" 
+        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'w'); }}
+        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'w'); }}
+      ></div>
+      <div className="resize-handle resize-handle-ne" 
+        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'ne'); }}
+        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'ne'); }}
+      ></div>
+      <div className="resize-handle resize-handle-nw" 
+        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'nw'); }}
+        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'nw'); }}
+      ></div>
+      <div className="resize-handle resize-handle-se" 
+        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'se'); }}
+        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'se'); }}
+      ></div>
+      <div className="resize-handle resize-handle-sw" 
+        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'sw'); }}
+        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'sw'); }}
+      ></div>
     </div>
   );
 }
