@@ -191,15 +191,6 @@
   touch-action: none;
 }
 
-.resize-handle-n {
-  top: 28px;
-  left: 6px;
-  right: 6px;
-  height: 5px;
-  cursor: n-resize;
-  z-index: 1;
-}
-
 .resize-handle-s {
   bottom: 0;
   left: 5px;
@@ -214,7 +205,6 @@
   bottom: 4px;
   width: 6px;
   cursor: e-resize;
-  z-index: 1;
 }
 
 .resize-handle-w {
@@ -223,25 +213,6 @@
   bottom: 4px;
   width: 6px;
   cursor: w-resize;
-  z-index: 1;
-}
-
-.resize-handle-ne {
-  top: 28px;
-  right: 0;
-  width: 6px;
-  height: 5px;
-  cursor: ne-resize;
-  z-index: 1;
-}
-
-.resize-handle-nw {
-  top: 28px;
-  left: 0;
-  width: 6px;
-  height: 5px;
-  cursor: nw-resize;
-  z-index: 1;
 }
 
 .resize-handle-se {

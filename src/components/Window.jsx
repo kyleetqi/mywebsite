@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import './Window.css';
-import { useWindowResize } from '../hooks/useWindowResize';
 import CloseButton from '../assets/CloseButton.png';
 import CloseButtonHover from '../assets/CloseButtonHover.png';
 import CloseButtonPress from '../assets/CloseButtonPress.png';
@@ -8,6 +7,8 @@ import NotepadIcon from '../assets/Icons/Notepad_WinXP.png';
 import NotepadMenu from './NotepadMenu';
 
 function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About Me", titleIcon = NotepadIcon, zIndex = 100, onFocus, notepadContent }) {
+  const MIN_SIZE = { width: 290, height: 200 };
+
   // Calculate initial position and size based on viewport size to prevent offscreen windows
   const getInitialState = () => {
     const viewportWidth = window.innerWidth;
@@ -15,8 +16,8 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
     const defaultWidth = 600;
     const defaultHeight = 500;
     const padding = 15;
-    const minWidth = 290;
-    const minHeight = 200;
+    const minWidth = MIN_SIZE.width;
+    const minHeight = MIN_SIZE.height;
     
     // Check if small device
     const isSmall = viewportWidth <= 480 || viewportHeight <= 480;
@@ -59,13 +60,32 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
   const [closeButtonState, setCloseButtonState] = useState('default'); // 'default', 'hover', 'press'
   const [isCloseButtonPressed, setIsCloseButtonPressed] = useState(false);
   const [isSmallDevice, setIsSmallDevice] = useState(false);
-  const resizeStartPosition = useRef(initialState.position);
-  const resizeStartSize = useRef(initialState.size);
-  const { size, setSize, handleMouseDown: handleResizeMouseDownBase, windowRef, positionDelta, isResizing, resizeDirection } = useWindowResize(initialState.size, { width: 290, height: 200 });
+  const [size, setSize] = useState(initialState.size);
+  const [isResizing, setIsResizing] = useState(false);
+  const windowRef = useRef(null);
 
   // Track previous device state to detect transitions
   const prevDeviceStateRef = useRef({ isSmall: false });
   
+  const clampToViewport = useCallback((nextPosition, nextSize) => {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    const clampedWidth = Math.min(nextSize.width, viewportWidth);
+    const clampedHeight = Math.min(nextSize.height, viewportHeight);
+
+    const maxX = Math.max(0, viewportWidth - clampedWidth);
+    const maxY = Math.max(0, viewportHeight - clampedHeight);
+
+    return {
+      position: {
+        x: Math.max(0, Math.min(nextPosition.x, maxX)),
+        y: Math.max(0, Math.min(nextPosition.y, maxY)),
+      },
+      size: { width: clampedWidth, height: clampedHeight },
+    };
+  }, []);
+
   // Detect device size (small or large)
   useEffect(() => {
     const checkDeviceSize = () => {
@@ -84,39 +104,16 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
         // Transitioning to small device - set window to full screen minus 30px
         const newWidth = viewportWidth - 30;
         const newHeight = viewportHeight - 30;
-        setSize({ width: newWidth, height: newHeight });
-        // Center the window with 15px padding
-        setPosition({ x: 15, y: 15 });
+        const { position: clampedPos, size: clampedSize } = clampToViewport(
+          { x: 15, y: 15 },
+          { width: newWidth, height: newHeight }
+        );
+        setSize(clampedSize);
+        setPosition(clampedPos);
       } else if (!isSmall && !isResizing) {
-        // Only shrink window if it actually extends beyond viewport (based on position + size)
-        // Don't apply arbitrary padding - let user resize to edges if they want
-        const minWidth = 290;
-        const minHeight = 200;
-        
-        // Get current position for accurate bounds checking
-        const currentX = position.x;
-        const currentY = position.y;
-        
-        // Check if right/bottom edges extend beyond viewport
-        const rightEdge = currentX + size.width;
-        const bottomEdge = currentY + size.height;
-        
-        let newWidth = size.width;
-        let newHeight = size.height;
-        let needsUpdate = false;
-        
-        if (rightEdge > viewportWidth) {
-          newWidth = Math.max(minWidth, viewportWidth - currentX);
-          needsUpdate = true;
-        }
-        if (bottomEdge > viewportHeight) {
-          newHeight = Math.max(minHeight, viewportHeight - currentY);
-          needsUpdate = true;
-        }
-        
-        if (needsUpdate) {
-          setSize({ width: newWidth, height: newHeight });
-        }
+        const { position: clampedPos, size: clampedSize } = clampToViewport(position, size);
+        setSize(clampedSize);
+        setPosition(clampedPos);
       }
       
       prevDeviceStateRef.current = { isSmall };
@@ -125,66 +122,132 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
     checkDeviceSize();
     window.addEventListener('resize', checkDeviceSize);
     return () => window.removeEventListener('resize', checkDeviceSize);
-  }, [setSize, size, isResizing, position]);
+  }, [clampToViewport, isResizing, position, size]);
 
-  // Wrap resize handler to capture position and size when resize starts
-  const handleResizeMouseDown = (e, direction) => {
-    // Capture position and size synchronously before resize starts
-    resizeStartPosition.current = { x: position.x, y: position.y };
-    resizeStartSize.current = { width: size.width, height: size.height };
-    handleResizeMouseDownBase(e, direction);
+  // --- Resizing (from scratch) ---
+  const resizeRef = useRef({
+    active: false,
+    pointerId: null,
+    direction: null, // 'w' | 'e' | 's' | 'sw' | 'se'
+    startX: 0,
+    startY: 0,
+    startLeft: 0,
+    startTop: 0,
+    startRight: 0,
+    startBottom: 0,
+  });
+
+  const onResizePointerDown = (e, direction) => {
+    // Only respond to primary button for mouse; touch/pen have button=0 as well
+    if (typeof e.button === 'number' && e.button !== 0) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (onFocus) onFocus();
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const minWidth = Math.min(MIN_SIZE.width, viewportWidth);
+    const minHeight = Math.min(MIN_SIZE.height, viewportHeight);
+
+    // Use DOM rect as source of truth for edges
+    const rect = windowRef.current?.getBoundingClientRect();
+    const startLeft = rect ? rect.left : position.x;
+    const startTop = rect ? rect.top : position.y;
+    const startRight = rect ? rect.left + rect.width : position.x + size.width;
+    const startBottom = rect ? rect.top + rect.height : position.y + size.height;
+
+    // If we're already smaller than minimum due to tiny viewport, normalize edges
+    const normalizedRight = Math.max(startRight, startLeft + minWidth);
+    const normalizedBottom = Math.max(startBottom, startTop + minHeight);
+
+    resizeRef.current = {
+      active: true,
+      pointerId: e.pointerId,
+      direction,
+      startX: e.clientX,
+      startY: e.clientY,
+      startLeft,
+      startTop,
+      startRight: normalizedRight,
+      startBottom: normalizedBottom,
+    };
+
+    setIsResizing(true);
+
+    // Keeps pointer events even if cursor leaves the handle
+    e.currentTarget.setPointerCapture?.(e.pointerId);
   };
 
-  const handleResizeTouchStart = (e, direction) => {
-    handleResizeMouseDown(e, direction);
-  };
-
-  // Track if we were resizing in the previous render to detect when resize ends
-  const wasResizingRef = useRef(false);
-  // Store the last resize direction so we can use it when resize ends
-  const lastResizeDirectionRef = useRef(null);
-  
-  // Update last resize direction during resize
-  if (isResizing && resizeDirection) {
-    lastResizeDirectionRef.current = resizeDirection;
-  }
-  
-  // Calculate effective position during resize directly from size change
-  // This ensures position and size are always perfectly in sync (derived from same source)
-  // For left/top resize, position = startPosition + (startSize - currentSize)
-  const calculateEffectivePosition = (direction) => {
-    let x = resizeStartPosition.current.x;
-    let y = resizeStartPosition.current.y;
-    
-    if (direction && direction.includes('w')) {
-      // Left resize: right edge stays fixed, so position moves by width change
-      x = resizeStartPosition.current.x + (resizeStartSize.current.width - size.width);
-    }
-    if (direction && direction.includes('n')) {
-      // Top resize: bottom edge stays fixed, so position moves by height change
-      y = resizeStartPosition.current.y + (resizeStartSize.current.height - size.height);
-    }
-    
-    return { x, y };
-  };
-  
-  const effectivePosition = isResizing
-    ? calculateEffectivePosition(resizeDirection)
-    : (wasResizingRef.current && !isResizing)
-      ? calculateEffectivePosition(lastResizeDirectionRef.current)
-      : position;
-  
-  // Sync final position to state when resize ends
   useEffect(() => {
-    if (wasResizingRef.current && !isResizing) {
-      // Resize just ended - commit the final position
-      const finalPosition = calculateEffectivePosition(lastResizeDirectionRef.current);
-      setPosition(finalPosition);
-      // Reset the ref for next resize
-      lastResizeDirectionRef.current = null;
-    }
-    wasResizingRef.current = isResizing;
-  }, [isResizing, size]);
+    if (!isResizing) return;
+
+    const handleMove = (e) => {
+      const r = resizeRef.current;
+      if (!r.active) return;
+      if (r.pointerId != null && e.pointerId !== r.pointerId) return;
+
+      e.preventDefault();
+
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const minWidth = Math.min(MIN_SIZE.width, viewportWidth);
+      const minHeight = Math.min(MIN_SIZE.height, viewportHeight);
+
+      const dx = e.clientX - r.startX;
+      const dy = e.clientY - r.startY;
+
+      let left = r.startLeft;
+      let top = r.startTop;
+      let right = r.startRight;
+      let bottom = r.startBottom;
+
+      // Horizontal edges
+      if (r.direction.includes('e')) {
+        right = Math.max(left + minWidth, Math.min(r.startRight + dx, viewportWidth));
+      }
+      if (r.direction.includes('w')) {
+        left = Math.min(
+          Math.max(r.startLeft + dx, 0),
+          r.startRight - minWidth
+        );
+      }
+
+      // Vertical edges (only bottom resizing requested)
+      if (r.direction.includes('s')) {
+        bottom = Math.max(top + minHeight, Math.min(r.startBottom + dy, viewportHeight));
+      }
+
+      const nextPosition = { x: left, y: top };
+      const nextSize = { width: right - left, height: bottom - top };
+      const clamped = clampToViewport(nextPosition, nextSize);
+
+      setPosition(clamped.position);
+      setSize(clamped.size);
+    };
+
+    const handleEnd = (e) => {
+      const r = resizeRef.current;
+      if (!r.active) return;
+      if (r.pointerId != null && e.pointerId !== r.pointerId) return;
+
+      resizeRef.current.active = false;
+      resizeRef.current.pointerId = null;
+      resizeRef.current.direction = null;
+      setIsResizing(false);
+    };
+
+    window.addEventListener('pointermove', handleMove, { passive: false });
+    window.addEventListener('pointerup', handleEnd, { passive: true });
+    window.addEventListener('pointercancel', handleEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleEnd);
+      window.removeEventListener('pointercancel', handleEnd);
+    };
+  }, [MIN_SIZE.height, MIN_SIZE.width, clampToViewport, isResizing]);
 
   // Helper to get coordinates from mouse or touch event
   const getEventCoordinates = (e) => {
@@ -296,17 +359,13 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
   // Constrain position on window resize
   useEffect(() => {
     const handleResize = () => {
-      // For all devices, just constrain to viewport (don't auto-resize on small devices)
-      const maxX = window.innerWidth - size.width;
-      const maxY = window.innerHeight - size.height;
-      setPosition(prev => ({
-        x: Math.max(0, Math.min(prev.x, maxX)),
-        y: Math.max(0, Math.min(prev.y, maxY))
-      }));
+      const clamped = clampToViewport(position, size);
+      setPosition(clamped.position);
+      setSize(clamped.size);
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [size]);
+  }, [clampToViewport, position, size]);
 
   const handleWindowMouseDown = (e) => {
     // Bring window to front when clicked (except on resize handles and close button)
@@ -328,7 +387,7 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
     <div 
       ref={windowRef}
       className="window"
-      style={{ top: effectivePosition.y, left: effectivePosition.x, width: size.width, height: size.height, zIndex: zIndex }}
+      style={{ top: position.y, left: position.x, width: size.width, height: size.height, zIndex: zIndex }}
       onMouseDown={handleWindowMouseDown}
       onTouchStart={handleWindowTouchStart}
     >
@@ -410,37 +469,25 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
       </div>
       
       {/* Resize Handles */}
-      <div className="resize-handle resize-handle-n" 
-        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'n'); }}
-        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'n'); }}
+      <div
+        className="resize-handle resize-handle-w"
+        onPointerDown={(e) => onResizePointerDown(e, 'w')}
       ></div>
-      <div className="resize-handle resize-handle-s" 
-        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 's'); }}
-        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 's'); }}
+      <div
+        className="resize-handle resize-handle-e"
+        onPointerDown={(e) => onResizePointerDown(e, 'e')}
       ></div>
-      <div className="resize-handle resize-handle-e" 
-        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'e'); }}
-        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'e'); }}
+      <div
+        className="resize-handle resize-handle-s"
+        onPointerDown={(e) => onResizePointerDown(e, 's')}
       ></div>
-      <div className="resize-handle resize-handle-w" 
-        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'w'); }}
-        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'w'); }}
+      <div
+        className="resize-handle resize-handle-sw"
+        onPointerDown={(e) => onResizePointerDown(e, 'sw')}
       ></div>
-      <div className="resize-handle resize-handle-ne" 
-        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'ne'); }}
-        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'ne'); }}
-      ></div>
-      <div className="resize-handle resize-handle-nw" 
-        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'nw'); }}
-        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'nw'); }}
-      ></div>
-      <div className="resize-handle resize-handle-se" 
-        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'se'); }}
-        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'se'); }}
-      ></div>
-      <div className="resize-handle resize-handle-sw" 
-        onMouseDown={(e) => { e.stopPropagation(); handleResizeMouseDown(e, 'sw'); }}
-        onTouchStart={(e) => { e.stopPropagation(); handleResizeTouchStart(e, 'sw'); }}
+      <div
+        className="resize-handle resize-handle-se"
+        onPointerDown={(e) => onResizePointerDown(e, 'se')}
       ></div>
     </div>
   );
