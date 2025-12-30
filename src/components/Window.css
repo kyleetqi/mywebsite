@@ -231,3 +231,27 @@
   cursor: sw-resize;
 }
 
+.resize-handle-n {
+  top: 0;
+  left: 5px;
+  right: 5px;
+  height: 5px;
+  cursor: n-resize;
+}
+
+.resize-handle-ne {
+  top: 0;
+  right: 0;
+  width: 5px;
+  height: 5px;
+  cursor: ne-resize;
+}
+
+.resize-handle-nw {
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  cursor: nw-resize;
+}
+

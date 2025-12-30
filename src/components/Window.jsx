@@ -175,6 +175,19 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
     if (dir.includes('s')) {
       height = Math.max(MIN_HEIGHT, Math.min(start.height + dy, vh - y));
     }
+    if (dir.includes('n')) {
+      // Calculate new y position, clamped to top edge (0)
+      let newY = Math.max(0, start.y + dy);
+      // Calculate new height based on how far y moved from the bottom edge
+      let newHeight = (start.y + start.height) - newY;
+      // Enforce minimum height by pushing y back if needed
+      if (newHeight < MIN_HEIGHT) {
+        newHeight = MIN_HEIGHT;
+        newY = (start.y + start.height) - MIN_HEIGHT;
+      }
+      y = newY;
+      height = newHeight;
+    }
     
     setBounds({ x, y, width, height });
   };
@@ -306,6 +319,27 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
       <div
         className="resize-handle resize-handle-sw"
         onPointerDown={(e) => onResizeStart(e, 'sw')}
+        onPointerMove={onResizeMove}
+        onPointerUp={onResizeEnd}
+        onPointerCancel={onResizeEnd}
+      />
+      <div
+        className="resize-handle resize-handle-n"
+        onPointerDown={(e) => onResizeStart(e, 'n')}
+        onPointerMove={onResizeMove}
+        onPointerUp={onResizeEnd}
+        onPointerCancel={onResizeEnd}
+      />
+      <div
+        className="resize-handle resize-handle-ne"
+        onPointerDown={(e) => onResizeStart(e, 'ne')}
+        onPointerMove={onResizeMove}
+        onPointerUp={onResizeEnd}
+        onPointerCancel={onResizeEnd}
+      />
+      <div
+        className="resize-handle resize-handle-nw"
+        onPointerDown={(e) => onResizeStart(e, 'nw')}
         onPointerMove={onResizeMove}
         onPointerUp={onResizeEnd}
         onPointerCancel={onResizeEnd}
