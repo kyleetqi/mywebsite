@@ -34,19 +34,21 @@ function App() {
 
   // Click-away logic for deselecting icons
   useEffect(() => {
-    const handleMouseDown = (e) => {
+    const handlePointerDown = (e) => {
       const isClickOnIcon = e.target.closest('.desktop-icon');
-      const isClickOnWindow = e.target.closest('.window');
-      const isClickOnDesktopIcons = e.target.closest('.desktop-icons');
       
-      // Deselect icon if clicking anywhere except on the icon itself
+      // Deselect icon if clicking/touching anywhere except on the icon itself
       if (!isClickOnIcon) {
         setSelectedIcon(null);
       }
     };
 
-    document.addEventListener('mousedown', handleMouseDown);
-    return () => document.removeEventListener('mousedown', handleMouseDown);
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+    };
   }, []);
 
   return (

@@ -106,6 +106,12 @@
   cursor: grabbing;
 }
 
+/* Apply grabbing cursor to entire window during drag */
+.window.dragging,
+.window.dragging * {
+  cursor: grabbing !important;
+}
+
 .frame-top-right {
   grid-column: 3;
   grid-row: 1;
@@ -268,7 +274,7 @@
   top: 28px;
   right: -10px; /* Extend outside the frame */
   bottom: 20px;
-  width: 16px;
+  width: 20px; /* Extends 10px inside the frame for easier touch targeting */
   cursor: e-resize;
 }
 

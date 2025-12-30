@@ -5,6 +5,7 @@ function DesktopIcon({ iconSrc, label, onOpen, isSelected, onSelect, href }) {
   const iconRef = useRef(null);
   const lastTapRef = useRef(0);
   const tapTimeoutRef = useRef(null);
+  const touchHandledRef = useRef(false);
 
   const handleOpen = () => {
     if (href) {
@@ -17,6 +18,13 @@ function DesktopIcon({ iconSrc, label, onOpen, isSelected, onSelect, href }) {
 
   const handleClick = (e) => {
     e.stopPropagation();
+    
+    // Ignore click events that were already handled by touch
+    if (touchHandledRef.current) {
+      touchHandledRef.current = false;
+      return;
+    }
+    
     if (e.detail === 1) {
       // Single click - select
       if (onSelect) {
@@ -30,6 +38,8 @@ function DesktopIcon({ iconSrc, label, onOpen, isSelected, onSelect, href }) {
 
   const handleTouchStart = (e) => {
     e.stopPropagation();
+    touchHandledRef.current = true;
+    
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTapRef.current;
     

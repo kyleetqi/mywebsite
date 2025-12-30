@@ -40,6 +40,7 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
   const initial = getInitialState();
   const [bounds, setBounds] = useState(initial);
   const [closeButtonState, setCloseButtonState] = useState('default');
+  const [isDragging, setIsDragging] = useState(false);
   
   const windowRef = useRef(null);
   const dragRef = useRef(null);
@@ -80,6 +81,7 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
     
     // Capture pointer to receive events even outside element
     el.setPointerCapture(e.pointerId);
+    setIsDragging(true);
     
     dragRef.current = {
       pointerId: e.pointerId,
@@ -119,6 +121,7 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
       el.releasePointerCapture(e.pointerId);
     }
     
+    setIsDragging(false);
     dragRef.current = null;
   };
 
@@ -249,7 +252,7 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
   return (
     <div 
       ref={windowRef}
-      className="window"
+      className={`window${isDragging ? ' dragging' : ''}`}
       style={{ 
         left: bounds.x, 
         top: bounds.y, 
