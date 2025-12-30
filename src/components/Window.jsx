@@ -4,7 +4,7 @@ import CloseButton from '../assets/CloseButton.png';
 import CloseButtonHover from '../assets/CloseButtonHover.png';
 import CloseButtonPress from '../assets/CloseButtonPress.png';
 import NotepadIcon from '../assets/Icons/Notepad_WinXP.png';
-import NotepadMenu from './NotepadMenu';
+import CustomScrollbar from './CustomScrollbar';
 
 const MIN_WIDTH = 290;
 const MIN_HEIGHT = 200;
@@ -44,6 +44,8 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
   const windowRef = useRef(null);
   const dragRef = useRef(null);
   const resizeRef = useRef(null);
+  const closeButtonPressedRef = useRef(false);
+  const contentRef = useRef(null);
 
   // Clamp bounds to viewport
   const clampBounds = useCallback((b) => {
@@ -209,25 +211,40 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
   const onCloseMouseDown = (e) => {
     e.stopPropagation();
     e.preventDefault();
+    closeButtonPressedRef.current = true;
     setCloseButtonState('press');
   };
 
   const onCloseMouseUp = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    if (closeButtonState === 'press') {
-      setCloseButtonState('default');
+    if (closeButtonPressedRef.current && closeButtonState === 'press') {
       onClose();
     }
+    closeButtonPressedRef.current = false;
+    setCloseButtonState('default');
   };
 
   const onCloseMouseEnter = () => {
-    if (closeButtonState !== 'press') setCloseButtonState('hover');
+    if (closeButtonPressedRef.current) {
+      setCloseButtonState('press');
+    } else {
+      setCloseButtonState('hover');
+    }
   };
 
   const onCloseMouseLeave = () => {
-    if (closeButtonState !== 'press') setCloseButtonState('default');
+    setCloseButtonState('default');
   };
+
+  // Reset close button state if mouse is released outside the button
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      closeButtonPressedRef.current = false;
+    };
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, []);
 
   return (
     <div 
@@ -277,7 +294,27 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
         {/* Middle Row */}
         <div className="frame-left"></div>
         <div className="frame-center">
-          {title === "About Me - Notepad" && <NotepadMenu content={notepadContent} />}
+          {/* Toolbar Row - for menu bars and toolbars */}
+          {title === "About Me - Notepad" && (
+            <div className="frame-center-toolbar">
+              <div className="notepad-menu-bar">
+                <span className="menu-item">File</span>
+                <span className="menu-item">Edit</span>
+                <span className="menu-item">Format</span>
+                <span className="menu-item">View</span>
+                <span className="menu-item">Help</span>
+              </div>
+            </div>
+          )}
+          {/* Content Row - scrollable content + scrollbar */}
+          <div className="frame-center-body">
+            <div className="frame-center-content" ref={contentRef}>
+              {title === "About Me - Notepad" && (
+                <div className="notepad-text">{notepadContent}</div>
+              )}
+            </div>
+            <CustomScrollbar contentRef={contentRef} />
+          </div>
         </div>
         <div className="frame-right"></div>
         

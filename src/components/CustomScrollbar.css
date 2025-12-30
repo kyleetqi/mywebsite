@@ -1,0 +1,105 @@
+.custom-scrollbar {
+  display: flex;
+  flex-direction: column;
+  width: 17px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* Arrow Buttons */
+.scrollbar-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.scrollbar-button img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.scrollbar-button.disabled {
+  cursor: default;
+  filter: grayscale(100%);
+  opacity: 0.7;
+}
+
+.scrollbar-button:active:not(.disabled) img {
+  transform: scale(0.95);
+}
+
+/* Track */
+.scrollbar-track {
+  flex: 1;
+  position: relative;
+  background-repeat: repeat;
+  background-size: 100% auto;
+  min-height: 20px;
+}
+
+/* Thumb Container */
+.scrollbar-thumb {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.scrollbar-thumb:active {
+  cursor: grabbing;
+}
+
+/* Thumb Parts */
+.thumb-top {
+  height: 4px;
+  width: 100%;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.thumb-body {
+  flex: 1;
+  min-height: 10px;
+  width: 100%;
+  background-repeat: repeat-y;
+  background-size: 100% auto;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.thumb-center {
+  width: 100%;
+  height: 8px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.thumb-bottom {
+  height: 4px;
+  width: 100%;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center;
+  flex-shrink: 0;
+}
+
