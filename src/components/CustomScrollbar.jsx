@@ -14,7 +14,7 @@ const SCROLL_SPEED = 20; // pixels per scroll tick
 const SCROLL_INTERVAL = 50; // ms between scroll ticks when holding
 const PAGE_SCROLL_MULTIPLIER = 5; // page scroll = SCROLL_SPEED * this
 
-function CustomScrollbar({ contentRef }) {
+function CustomScrollbar({ contentRef, onInteraction }) {
   const [thumbPosition, setThumbPosition] = useState(0);
   const [thumbHeight, setThumbHeight] = useState(0);
   const [canScroll, setCanScroll] = useState(false);
@@ -70,9 +70,10 @@ function CustomScrollbar({ contentRef }) {
     const handleScroll = () => updateScrollbar();
     content.addEventListener('scroll', handleScroll);
     
-    // Initial update (with a small delay to ensure content is rendered)
+    // Initial update (with delays to ensure content is rendered)
     updateScrollbar();
-    const initialTimeout = setTimeout(updateScrollbar, 100);
+    const initialTimeout = setTimeout(updateScrollbar, 50);
+    const secondTimeout = setTimeout(updateScrollbar, 200);
 
     // Update on resize of the content container
     const resizeObserver = new ResizeObserver(() => updateScrollbar());
@@ -91,6 +92,7 @@ function CustomScrollbar({ contentRef }) {
       resizeObserver.disconnect();
       mutationObserver.disconnect();
       clearTimeout(initialTimeout);
+      clearTimeout(secondTimeout);
     };
   }, [contentRef, updateScrollbar]);
 
@@ -131,12 +133,14 @@ function CustomScrollbar({ contentRef }) {
   const handleUpMouseDown = (e) => {
     e.preventDefault();
     if (!canScroll) return;
+    if (onInteraction) onInteraction();
     startContinuousScroll(-SCROLL_SPEED);
   };
 
   const handleDownMouseDown = (e) => {
     e.preventDefault();
     if (!canScroll) return;
+    if (onInteraction) onInteraction();
     startContinuousScroll(SCROLL_SPEED);
   };
 
@@ -151,6 +155,7 @@ function CustomScrollbar({ contentRef }) {
   // Track click handler (page scroll)
   const handleTrackClick = (e) => {
     if (!canScroll) return;
+    if (onInteraction) onInteraction();
     
     const track = trackRef.current;
     const thumb = thumbRef.current;
@@ -174,6 +179,7 @@ function CustomScrollbar({ contentRef }) {
     if (!canScroll) return;
     e.preventDefault();
     e.stopPropagation();
+    if (onInteraction) onInteraction();
 
     const thumb = thumbRef.current;
     if (!thumb) return;

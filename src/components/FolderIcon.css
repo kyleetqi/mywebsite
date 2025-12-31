@@ -1,0 +1,48 @@
+/* Folder icon - for files displayed inside folder windows */
+.folder-icon {
+  width: 72px;
+  text-align: center;
+  cursor: default;
+  user-select: none;
+  padding: 4px;
+  border-radius: 2px;
+  outline: none;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+}
+
+.folder-icon .folder-icon-image {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.folder-icon .folder-icon-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.folder-icon:hover {
+  background: rgba(49, 106, 197, 0.1);
+}
+
+.folder-icon.selected {
+  background: rgba(49, 106, 197, 0.3);
+  border: 1px solid rgba(49, 106, 197, 0.6);
+}
+
+.folder-icon .folder-icon-label {
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  color: #000000;
+  margin-top: 4px;
+  user-select: none;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.2;
+}
+

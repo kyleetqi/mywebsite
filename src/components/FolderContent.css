@@ -1,0 +1,13 @@
+/* Folder content area - displays files in a grid */
+.folder-content {
+  background-color: #ffffff;
+  padding: 8px;
+}
+
+.folder-content-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 8px;
+}
+

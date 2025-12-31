@@ -1,0 +1,223 @@
+/* Folder window toolbar styles */
+.folder-menu-bar {
+  height: 20px;
+  background-color: #efebde;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  flex-shrink: 0;
+  border-bottom: 1px solid #adb5b7;
+}
+
+.folder-menu-bar .menu-item {
+  position: relative;
+  padding: 2px 6px;
+  height: 16px;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  color: #000000;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  user-select: none;
+  margin: 0;
+}
+
+.folder-menu-bar .menu-item:hover {
+  background-color: #316ac5;
+  color: #ffffff;
+}
+
+.folder-menu-bar .menu-item.active {
+  background-color: #316ac5;
+  color: #ffffff;
+}
+
+/* Dropdown menu - Windows XP style */
+.folder-menu-bar .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 120px;
+  background-color: #ffffff;
+  border: 1px solid #808080;
+  box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  padding: 0;
+}
+
+.folder-menu-bar .dropdown-item {
+  padding: 4px 20px;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  color: #000000;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.folder-menu-bar .dropdown-item.hovered {
+  background-color: #316ac5;
+  color: #ffffff;
+}
+
+.folder-toolbar {
+  height: 48px;
+  background-color: #efebde;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  gap: 2px;
+  flex-shrink: 0;
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #adb5b7;
+}
+
+.toolbar-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  cursor: default;
+  border-radius: 3px;
+  min-width: 40px;
+}
+
+.toolbar-button:hover:not(.disabled) {
+  background: rgba(0, 0, 0, 0.08);
+  border: 1px solid #c0c0c0;
+  padding: 1px 5px;
+}
+
+/* Disabled button styling - Windows XP style */
+.toolbar-button.disabled {
+  cursor: default;
+  pointer-events: none;
+}
+
+.toolbar-button.disabled .toolbar-icon {
+  filter: grayscale(100%) opacity(0.5);
+}
+
+.toolbar-button.disabled .toolbar-label {
+  color: #808080;
+}
+
+.toolbar-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.toolbar-label {
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  color: #000000;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 24px;
+  background-color: #a0adb8;
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* Row 3: Address bar */
+.folder-address-bar {
+  height: 22px;
+  background-color: #efebde;
+  display: flex;
+  align-items: center;
+  padding: 0 4px;
+  gap: 4px;
+  flex-shrink: 0;
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #7b9ebd;
+}
+
+.address-label {
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  color: #000000;
+  user-select: none;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
+.address-input-container {
+  flex: 1;
+  height: 18px;
+  background-color: #ffffff;
+  border: 1px solid #7b9ebd;
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+  gap: 4px;
+  min-width: 0;
+}
+
+.address-folder-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.address-path {
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  color: #000000;
+  user-select: none;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.address-dropdown-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 18px;
+  pointer-events: none;
+}
+
+.address-dropdown-btn img {
+  height: 18px;
+  width: auto;
+  object-fit: contain;
+  filter: grayscale(100%) opacity(0.6);
+}
+
+.address-go-container {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  cursor: default;
+  pointer-events: none;
+}
+
+.address-go-icon {
+  height: 20px;
+  width: auto;
+  object-fit: contain;
+  filter: grayscale(100%) opacity(0.6);
+}
+
+.address-go-label {
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  color: #808080;
+  user-select: none;
+  padding: 0 6px;
+}

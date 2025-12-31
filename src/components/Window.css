@@ -140,7 +140,7 @@
   grid-column: 2;
   grid-row: 2;
   background-color: #ffffff;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   min-width: 100px;
   min-height: 100px;
@@ -151,6 +151,8 @@
 /* Toolbar Row - for menu bars, toolbars, etc. */
 .frame-center-toolbar {
   flex-shrink: 0;
+  position: relative;
+  z-index: 100;
 }
 
 /* Content Row - contains scrollable content + scrollbar */
@@ -160,6 +162,7 @@
   flex-direction: row;
   overflow: hidden;
   min-height: 0; /* Important for flex children to shrink properly */
+  background-color: #ffffff;
 }
 
 .frame-center-content {

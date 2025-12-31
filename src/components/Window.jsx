@@ -1,15 +1,31 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import './Window.css';
-import CloseButton from '../assets/CloseButton.png';
-import CloseButtonHover from '../assets/CloseButtonHover.png';
-import CloseButtonPress from '../assets/CloseButtonPress.png';
+import CloseButton from '../assets/Buttons/CloseButton.png';
+import CloseButtonHover from '../assets/Buttons/CloseButtonHover.png';
+import CloseButtonPress from '../assets/Buttons/CloseButtonPress.png';
 import NotepadIcon from '../assets/Icons/Notepad_WinXP.png';
 import CustomScrollbar from './CustomScrollbar';
+import FolderToolbar from './FolderToolbar';
+import NotepadMenu from './NotepadMenu';
+import FolderContent from './FolderContent';
 
 const MIN_WIDTH = 290;
 const MIN_HEIGHT = 200;
 
-function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About Me", titleIcon = NotepadIcon, zIndex = 100, onFocus, notepadContent }) {
+function Window({ 
+  onClose, 
+  initialPosition = { x: 100, y: 100 }, 
+  title = "About Me", 
+  titleIcon = NotepadIcon, 
+  zIndex = 100, 
+  onFocus, 
+  notepadContent,
+  windowType = 'notepad',
+  folderFiles = [],
+  onFileOpen,
+  selectedFile,
+  onFileSelect
+}) {
   
   // Calculate initial position and size based on viewport
   const getInitialState = useCallback(() => {
@@ -21,9 +37,9 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
     let height = 500;
     
     if (isSmall) {
-      width = vw - 30;
-      height = vh - 30;
-      return { x: 15, y: 15, width, height };
+      width = vw - 16;
+      height = vh - 16;
+      return { x: 8, y: 8, width, height };
     }
     
     // Clamp size to viewport
@@ -298,25 +314,32 @@ function Window({ onClose, initialPosition = { x: 100, y: 100 }, title = "About 
         <div className="frame-left"></div>
         <div className="frame-center">
           {/* Toolbar Row - for menu bars and toolbars */}
-          {title === "About Me - Notepad" && (
+          {windowType === 'notepad' && (
             <div className="frame-center-toolbar">
-              <div className="notepad-menu-bar">
-                <span className="menu-item">File</span>
-                <span className="menu-item">Edit</span>
-                <span className="menu-item">Format</span>
-                <span className="menu-item">View</span>
-                <span className="menu-item">Help</span>
-              </div>
+              <NotepadMenu />
+            </div>
+          )}
+          {windowType === 'folder' && (
+            <div className="frame-center-toolbar">
+              <FolderToolbar />
             </div>
           )}
           {/* Content Row - scrollable content + scrollbar */}
           <div className="frame-center-body">
             <div className="frame-center-content" ref={contentRef}>
-              {title === "About Me - Notepad" && (
+              {windowType === 'notepad' && (
                 <div className="notepad-text">{notepadContent}</div>
               )}
+              {windowType === 'folder' && (
+                <FolderContent 
+                  files={folderFiles}
+                  onFileOpen={onFileOpen}
+                  selectedFile={selectedFile}
+                  onFileSelect={onFileSelect}
+                />
+              )}
             </div>
-            <CustomScrollbar contentRef={contentRef} />
+            <CustomScrollbar contentRef={contentRef} onInteraction={onFocus} />
           </div>
         </div>
         <div className="frame-right"></div>
