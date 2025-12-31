@@ -3,6 +3,9 @@
 // All of the writings are placeholder text for now.
 // Once the actual writings are added, the content will be replaced with the actual writings.
 
+// About Me content
+export const aboutMeContent = `Write something here...`;
+
 export const writingsFiles = [
   {
     id: 'thoughts-on-ai',

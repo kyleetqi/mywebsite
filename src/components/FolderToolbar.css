@@ -4,9 +4,31 @@
   background-color: #efebde;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0;
   flex-shrink: 0;
   border-bottom: 1px solid #adb5b7;
+}
+
+.menu-items-left {
+  display: flex;
+  align-items: center;
+}
+
+.menu-logo-container {
+  height: 100%;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border-left: 1px solid #adb5b7;
+}
+
+.menu-logo {
+  height: 16px;
+  width: auto;
+  object-fit: contain;
 }
 
 .folder-menu-bar .menu-item {
@@ -70,6 +92,24 @@
   flex-shrink: 0;
   border-top: 1px solid #ffffff;
   border-bottom: 1px solid #adb5b7;
+}
+
+.folder-toolbar.compact {
+  gap: 0;
+}
+
+.folder-toolbar.compact .toolbar-button {
+  min-width: 28px;
+  padding: 2px 4px;
+}
+
+.folder-toolbar.compact .toolbar-button-collapsible {
+  min-width: 24px;
+  padding: 2px 2px;
+}
+
+.folder-toolbar.compact .toolbar-separator {
+  margin: 0 2px;
 }
 
 .toolbar-button {

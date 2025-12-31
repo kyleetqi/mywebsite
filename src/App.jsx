@@ -9,7 +9,8 @@ import FolderIcon from './assets/Icons/FolderIcon.png';
 import MailIcon from './assets/Icons/MailIcon.png';
 import MessengerIcon from './assets/Icons/MessengerIcon.png';
 import TerminalIcon from './assets/Icons/TerminalIcon.png';
-import { writingsFiles } from './data/filesData';
+import PaintIcon from './assets/Icons/PaintIcon.png';
+import { writingsFiles, aboutMeContent } from './data/filesData';
 
 function App() {
   // Window management - using a map of window IDs to window data
@@ -23,8 +24,34 @@ function App() {
     return `window-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }, []);
 
-  // Open a new window
+  // Find existing window by windowKey
+  const findWindowByKey = useCallback((windowKey) => {
+    return Object.values(windows).find(win => win.windowKey === windowKey);
+  }, [windows]);
+
+  // Open a new window or bring existing to front
   const openWindow = useCallback((windowConfig) => {
+    // If windowKey is provided, check if window already exists
+    if (windowConfig.windowKey) {
+      const existingWindow = Object.values(windows).find(
+        win => win.windowKey === windowConfig.windowKey
+      );
+      
+      if (existingWindow) {
+        // Bring existing window to front
+        maxZIndexRef.current += 1;
+        setWindows(prev => ({
+          ...prev,
+          [existingWindow.id]: {
+            ...prev[existingWindow.id],
+            zIndex: maxZIndexRef.current
+          }
+        }));
+        return existingWindow.id;
+      }
+    }
+
+    // Create new window
     const id = generateWindowId();
     maxZIndexRef.current += 1;
     
@@ -38,7 +65,7 @@ function App() {
     }));
     
     return id;
-  }, [generateWindowId]);
+  }, [generateWindowId, windows]);
 
   // Close a window
   const closeWindow = useCallback((windowId) => {
@@ -65,15 +92,12 @@ function App() {
   const openAboutMe = useCallback(() => {
     setSelectedIcon(null);
     openWindow({
+      windowKey: 'aboutMe',
       type: 'notepad',
       title: 'About Me - Notepad',
       titleIcon: NotepadIcon,
       initialPosition: { x: 100, y: 100 },
-      content: `Welcome to my personal website! This is a Windows XP-themed portfolio where you can explore my work and experience.
-
-I'm a mechatronics engineer passionate about robotics, automation, and creating innovative solutions that bridge the gap between hardware and software.
-
-Feel free to explore the different sections using the desktop icons. Each window contains information about different aspects of my background and interests.`
+      content: aboutMeContent
     });
   }, [openWindow]);
 
@@ -81,6 +105,7 @@ Feel free to explore the different sections using the desktop icons. Each window
   const openExperience = useCallback(() => {
     setSelectedIcon(null);
     openWindow({
+      windowKey: 'experience',
       type: 'other',
       title: 'Experience',
       titleIcon: PDFIcon,
@@ -93,6 +118,7 @@ Feel free to explore the different sections using the desktop icons. Each window
   const openWritings = useCallback(() => {
     setSelectedIcon(null);
     openWindow({
+      windowKey: 'writings',
       type: 'folder',
       title: 'Writings',
       titleIcon: FolderIcon,
@@ -101,10 +127,24 @@ Feel free to explore the different sections using the desktop icons. Each window
     });
   }, [openWindow]);
 
+  // Open Paint
+  const openPaint = useCallback(() => {
+    setSelectedIcon(null);
+    openWindow({
+      windowKey: 'paint',
+      type: 'paint',
+      title: 'Send Me a Drawing - Paint',
+      titleIcon: PaintIcon,
+      initialPosition: { x: 120, y: 80 },
+      content: ''
+    });
+  }, [openWindow]);
+
   // Open a file from the folder as a notepad window
   const openFileFromFolder = useCallback((file) => {
     setSelectedFolderFile(null);
     openWindow({
+      windowKey: `file-${file.id}`,
       type: 'notepad',
       title: `${file.name} - Notepad`,
       titleIcon: NotepadIcon,
@@ -165,6 +205,13 @@ Feel free to explore the different sections using the desktop icons. Each window
             onOpen={openWritings}
             isSelected={selectedIcon === 'writings'}
             onSelect={() => setSelectedIcon('writings')}
+          />
+          <DesktopIcon 
+            iconSrc={PaintIcon} 
+            label="Paint" 
+            onOpen={openPaint}
+            isSelected={selectedIcon === 'paint'}
+            onSelect={() => setSelectedIcon('paint')}
           />
         </div>
         

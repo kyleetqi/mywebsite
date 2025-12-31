@@ -8,6 +8,7 @@ import CustomScrollbar from './CustomScrollbar';
 import FolderToolbar from './FolderToolbar';
 import NotepadMenu from './NotepadMenu';
 import FolderContent from './FolderContent';
+import PaintMenu from './PaintMenu';
 
 const MIN_WIDTH = 290;
 const MIN_HEIGHT = 200;
@@ -321,7 +322,12 @@ function Window({
           )}
           {windowType === 'folder' && (
             <div className="frame-center-toolbar">
-              <FolderToolbar />
+              <FolderToolbar windowWidth={bounds.width} />
+            </div>
+          )}
+          {windowType === 'paint' && (
+            <div className="frame-center-toolbar">
+              <PaintMenu />
             </div>
           )}
           {/* Content Row - scrollable content + scrollbar */}

@@ -1,0 +1,61 @@
+.paint-menu-bar {
+  height: 20px;
+  background-color: #efebde;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  flex-shrink: 0;
+  border-bottom: 1px solid #7b9ebd;
+}
+
+.paint-menu-bar .menu-item {
+  position: relative;
+  padding: 2px 6px;
+  height: 16px;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  color: #000000;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  user-select: none;
+  margin: 0;
+}
+
+.paint-menu-bar .menu-item:hover {
+  background-color: #316ac5;
+  color: #ffffff;
+}
+
+.paint-menu-bar .menu-item.active {
+  background-color: #316ac5;
+  color: #ffffff;
+}
+
+/* Dropdown menu - Windows XP style */
+.paint-menu-bar .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 120px;
+  background-color: #ffffff;
+  border: 1px solid #808080;
+  box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  padding: 0;
+}
+
+.paint-menu-bar .dropdown-item {
+  padding: 4px 20px;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  color: #000000;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.paint-menu-bar .dropdown-item.hovered {
+  background-color: #316ac5;
+  color: #ffffff;
+}
+
